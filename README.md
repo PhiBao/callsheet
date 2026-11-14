@@ -8,6 +8,8 @@ The name, member ID, account number, phone number, and address never leave the b
 
 Built for **#BuildHybridAI 2026**, Web/Chrome track, using **Firebase AI Logic hybrid inference**.
 
+Repo: **https://github.com/PhiBao/callsheet** · License: Apache-2.0
+
 ```
 $146.00  printed amount due
 $110.00  the lines, added up
@@ -187,7 +189,7 @@ glossary:[{ code, gloss_id }]
 
 | Claim | State |
 | --- | --- |
-| On-device structured read through Firebase AI Logic `ONLY_ON_DEVICE` | Implemented. Requires desktop Chrome 139+ with the built-in model available. The demo machine is being verified. |
+| On-device structured read through Firebase AI Logic `ONLY_ON_DEVICE` | Implemented and verified on Chrome stable 149: the model returned a structured read of the sample with the five lines, the `$146.00` amount, and the duplicate `99213`. The UI shows the source from the SDK. |
 | Rust duplicate and total checks | Implemented and tested (`cargo test`, 8 tests). Compiled to WASM and used by the page. |
 | Citation fence | Implemented and tested. Drops a sentence with a number not in the packet, an unknown code, an unknown gloss id, or a private field. |
 | Cloud writing through `ONLY_IN_CLOUD` | Implemented. Needs a Firebase project with AI Logic enabled and App Check configured. |
