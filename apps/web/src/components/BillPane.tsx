@@ -7,9 +7,10 @@ type Props = {
   onRead: () => void;
   busy: boolean;
   done: boolean;
+  captured: boolean;
 };
 
-export function BillPane({ extraction, checks, onRead, busy, done }: Props) {
+export function BillPane({ extraction, checks, onRead, busy, done, captured }: Props) {
   const flagged = new Set(
     checks.flatMap((c) => (c.id.startsWith('duplicate-') ? c.line_numbers : [])),
   );
@@ -110,6 +111,11 @@ export function BillPane({ extraction, checks, onRead, busy, done }: Props) {
             <span className="status-dot" />
             Reading on this computer. The first prompt can take twenty seconds.
           </>
+        ) : captured ? (
+          <>
+            <span className="status-dot" style={{ background: 'var(--signal)' }} />
+            Captured on-device read. Not a live run.
+          </>
         ) : done ? (
           <>
             <span className="status-dot" />
@@ -126,10 +132,18 @@ export function BillPane({ extraction, checks, onRead, busy, done }: Props) {
       <button
         className="button button--wide"
         onClick={onRead}
-        disabled={busy || done}
+        disabled={busy || (done && !captured)}
         style={{ marginTop: 10 }}
       >
-        {done ? 'Bill read' : busy ? 'Reading…' : 'Read it on this computer'}
+        {captured
+          ? busy
+            ? 'Reading…'
+            : 'Try a live read'
+          : done
+            ? 'Bill read'
+            : busy
+              ? 'Reading…'
+              : 'Read it on this computer'}
       </button>
     </section>
   );

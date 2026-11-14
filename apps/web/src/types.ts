@@ -75,7 +75,12 @@ export type CallSheet = {
   disclaimer: string;
 };
 
-export type InferenceSource = 'ON_DEVICE' | 'IN_CLOUD' | 'LOCAL_ON_DEVICE' | 'LOCAL_CLOUD';
+export type InferenceSource =
+  | 'ON_DEVICE'
+  | 'IN_CLOUD'
+  | 'LOCAL_ON_DEVICE'
+  | 'LOCAL_CLOUD'
+  | 'CAPTURED_ON_DEVICE';
 
 export type ReadResult = {
   extraction: Extraction;

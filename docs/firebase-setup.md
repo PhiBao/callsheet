@@ -26,25 +26,32 @@ The app uses two model instances:
 
 ## 3. App Check
 
-1. Open **Security → App Check**.
+App Check app registration is a console step. The REST API does not expose it.
+
+1. Open **Security → App Check → Apps** for the project:
+   <https://console.firebase.google.com/project/callsheet-hybrid/appcheck/apps>
 2. Register the web app with **reCAPTCHA Enterprise**.
-3. Create a reCAPTCHA Enterprise key for the domain in the Google Cloud console, or use the
-   Firebase guided flow.
-4. Copy the **site key** into `VITE_APP_CHECK_SITE_KEY`.
+3. Use the site key already created for this project:
+   `6Lf0mSAuAAAAAD00c2J9590hTQ-ZRMm14NODQOa6`
+4. The allowed domains are `callsheet-hybrid.web.app`, `callsheet-hybrid.firebaseapp.com`, and
+   `localhost`.
+5. Open **App Check → APIs** and enforce **AI Logic**.
 
-For localhost, the app can use a debug token. Set `FIREBASE_APPCHECK_DEBUG_TOKEN=true` in the
-browser or let the app print one, then register it in **App Check → Apps → Manage debug tokens**.
-Never commit a debug token.
+For localhost, the app can use a debug token. Never commit a debug token.
 
-A hosted demo needs a real reCAPTCHA Enterprise site key. A debug token will not work in a judge's
+A hosted demo needs the real reCAPTCHA Enterprise site key. A debug token will not work in a judge's
 browser.
 
-## 4. Authentication
+## 4. Authentication (optional)
 
-1. Open **Authentication → Sign-in method**.
-2. Enable **Anonymous**.
-3. The app signs in anonymously so a receipt can be scoped to the browser. It does not ask for an
-   email.
+The receipt does **not** require an account. It is a public, append-only proof log with a 64-character
+packet hash, two source strings, check ids, and counts. It never contains the bill, a name, a member
+id, or a phone.
+
+Anonymous Firebase Auth requires Identity Platform billing on a new project. The core product does
+not need it, so the app treats auth as best-effort and the receipt stays public. If you want
+account-scoped receipts later, enable billing, initialize Identity Platform, turn on Anonymous, and
+tighten `firestore.rules` to `request.auth != null`.
 
 ## 5. Firestore
 
@@ -56,7 +63,8 @@ firebase deploy --only firestore:rules
 ```
 
 The rules accept only a 64-character packet hash, two source strings, a bounded list of check ids,
-and counts. They reject a document that contains a raw bill.
+and counts. They reject a document that contains a raw bill. The receipt is public and append-only,
+so a judge can inspect the proof without an account.
 
 ## 6. The environment file
 

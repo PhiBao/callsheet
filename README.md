@@ -147,8 +147,9 @@ not a copy of the AMA CPT book. If a code is not in the glossary, the sheet says
         │                    │                         │
         ▼                    ▼                         ▼
    App Check           Firestore receipt         Remote Config
-   Anonymous Auth      hash + sources +          model name,
-                       counts, no raw text       glossary version
+   reCAPTCHA           public, append-only       model name,
+                       hash + sources +         glossary version
+                       counts, no raw text
 ```
 
 The bill is not a field on any request. The packet is the only request body. The Rust verifier
@@ -193,8 +194,8 @@ glossary:[{ code, gloss_id }]
 | Rust duplicate and total checks | Implemented and tested (`cargo test`, 8 tests). Compiled to WASM and used by the page. |
 | Citation fence | Implemented and tested. Drops a sentence with a number not in the packet, an unknown code, an unknown gloss id, or a private field. |
 | Cloud writing through `ONLY_IN_CLOUD` | Implemented. Needs a Firebase project with AI Logic enabled and App Check configured. |
-| Firestore receipt | Implemented. Stores a SHA-256 packet hash, sources, check ids, and counts. Never the bill. |
-| App Check | Code path present. The hosted build needs a reCAPTCHA Enterprise site key. Debug tokens are for localhost only and are not committed. |
+| Firestore receipt | Implemented. Public, append-only, and stores a SHA-256 packet hash, sources, check ids, and counts. Never the bill. |
+| App Check | Code path present. The hosted build uses a reCAPTCHA Enterprise site key; the App Check app registration is a console step. |
 | PDF text extraction | `pdf.js` is a should-ship. The reliable demo path is pasted or fixture text. |
 | Photo of a bill | Should-ship. The hybrid SDK supports JPEG/PNG on-device. Not required for the core demo. |
 | Negotiation, fair-price benchmarks, charity-care eligibility, medical or legal advice | Not built, by design. |
@@ -247,8 +248,9 @@ The full walkthrough is in `docs/firebase-setup.md`. The short version:
 
 1. Create a Firebase project and a web app.
 2. Enable **AI Logic** and choose the Gemini Developer API (free tier).
-3. Enable **App Check** with reCAPTCHA Enterprise for the web app.
-4. Enable **Anonymous** authentication.
+3. Enable **App Check** with reCAPTCHA Enterprise for the web app. Register the app in the console
+   and enforce App Check for AI Logic.
+4. (Optional) Enable **Anonymous** authentication. The receipt does not require an account.
 5. Create a Firestore database and deploy `firestore.rules`.
 6. Copy `apps/web/.env.example` to `apps/web/.env.local` and fill in
    `VITE_FIREBASE_CONFIG` and `VITE_APP_CHECK_SITE_KEY`.

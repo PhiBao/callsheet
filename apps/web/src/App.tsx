@@ -6,9 +6,9 @@ import { SheetPane } from './components/SheetPane';
 import { Receipt } from './components/Receipt';
 import { getClient } from './lib/ai';
 import { GLOSS_REFS, GLOSSARY_VERSION } from './lib/glossary';
-import { loadRules, type Rules } from './lib/rules';
+import { loadRules, sha256Hex, type Rules } from './lib/rules';
 import { readAndSeal, writeAndVerify, type ScriptRun } from './lib/pipeline';
-import { SAMPLE_BILL_TEXT, SAMPLE_EXTRACTION } from './lib/sample';
+import { SAMPLE_BILL_TEXT, SAMPLE_EXTRACTION, CAPTURED_READ } from './lib/sample';
 import type { Extraction, SealedPacket } from './types';
 
 type Stage = 'idle' | 'reading' | 'review' | 'writing' | 'done' | 'error';
@@ -26,6 +26,7 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [receiptId, setReceiptId] = useState<string | null>(null);
   const [fenceProved, setFenceProved] = useState(false);
+  const [captured, setCaptured] = useState(false);
 
   useEffect(() => {
     let live = true;
@@ -63,6 +64,7 @@ export default function App() {
       setPacket(run.packet);
       setPacketHash(run.packetHash);
       setReadSource(run.read.source);
+      setCaptured(false);
       setStage('review');
     } catch (e) {
       console.error('on-device read failed', e);
@@ -81,7 +83,7 @@ export default function App() {
     setError(null);
     try {
       const run = await writeAndVerify(client, rules, packet, extraction);
-      setScript(run);
+      setScript({ ...run, note: captured ? CAPTURED_READ.note : run.note });
       setStage('done');
       if (packetHash) {
         const id = await client.recordReceipt({
@@ -115,6 +117,24 @@ export default function App() {
     setError(null);
     setReceiptId(null);
     setFenceProved(false);
+    setCaptured(false);
+  }
+
+  async function handleCapturedRead() {
+    if (!rules) return;
+    setStage('reading');
+    setError(null);
+    setScript(null);
+    setReceiptId(null);
+    setFenceProved(false);
+    setExtraction(CAPTURED_READ.extraction);
+    const sealed = rules.seal(CAPTURED_READ.extraction, GLOSS_REFS);
+    const hash = await sha256Hex(JSON.stringify(sealed));
+    setPacket(sealed);
+    setPacketHash(hash);
+    setReadSource('CAPTURED_ON_DEVICE');
+    setCaptured(true);
+    setStage('review');
   }
 
   function handleProveFence() {
@@ -146,6 +166,7 @@ export default function App() {
         clientKind={client.kind}
         clientLabel={client.label}
         stage={stage}
+        captured={captured}
         onReset={handleReset}
       />
 
@@ -168,7 +189,15 @@ export default function App() {
 
       {error && (
         <div className="error" style={{ marginBottom: 16 }} role="alert">
-          {error}
+          <div>{error}</div>
+          <button
+            className="button button--ghost"
+            onClick={handleCapturedRead}
+            disabled={!rules}
+            style={{ marginTop: 10, padding: '6px 10px', fontSize: 11 }}
+          >
+            Use the captured on-device read (not a live run)
+          </button>
         </div>
       )}
 
@@ -190,6 +219,7 @@ export default function App() {
           onRead={handleRead}
           busy={stage === 'reading'}
           done={stage !== 'idle' && stage !== 'error'}
+          captured={captured}
         />
         <SlotPane
           packet={packet}

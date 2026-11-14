@@ -17,12 +17,14 @@ const ctx = await chromium.launchPersistentContext(PROFILE, {
   args: flags,
 });
 const page = ctx.pages()[0] || await ctx.newPage();
+const cdp = await ctx.newCDPSession(page);
+await cdp.send('Network.clearBrowserCache');
 page.on('console', (m) => {
   if (m.type() === 'error') console.log('[console]', m.text().slice(0, 400));
 });
 page.on('pageerror', (e) => console.log('[pageerror]', String(e).slice(0, 400)));
 
-await page.goto(process.env.BASE_URL || 'http://127.0.0.1:5173/', { waitUntil: 'networkidle' });
+await page.goto(`${process.env.BASE_URL || 'http://127.0.0.1:5173/'}?v=${Date.now()}`, { waitUntil: 'networkidle' });
 console.log('loaded');
 
 const readButton = page.getByRole('button', { name: /Read it on this computer/i });

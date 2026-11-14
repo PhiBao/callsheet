@@ -56,9 +56,9 @@ The hybrid split is the product, not a fallback toggle.
 6. **Finish, on device.** The billing phone number is filled in after the draft is verified. It was
    never in the packet.
 
-App Check with reCAPTCHA Enterprise protects the AI Logic calls. Anonymous Auth scopes the receipt.
-Firestore stores a SHA-256 packet hash, the two inference sources, the check ids, and the fence
-counts. It never stores the bill. Remote Config holds the cloud model and glossary version.
+App Check with reCAPTCHA Enterprise protects the AI Logic calls. The receipt is public and
+append-only: a SHA-256 packet hash, the two inference sources, the check ids, and the fence counts.
+It never stores the bill. Remote Config holds the cloud model and glossary version.
 
 ### Why it is different
 
@@ -92,8 +92,8 @@ firestore, remote-config, react, typescript, vite, rust, webassembly, wasm-bindg
 
 ## Pre-submission checklist
 
-- [ ] Firebase project created, AI Logic enabled, App Check with reCAPTCHA Enterprise, anonymous auth,
-      Firestore, Remote Config.
+- [ ] Firebase project created, AI Logic enabled with the Get started wizard, App Check with
+      reCAPTCHA Enterprise, Firestore, Remote Config.
 - [ ] `apps/web/.env.local` has `VITE_FIREBASE_CONFIG` and `VITE_APP_CHECK_SITE_KEY`.
 - [ ] `firestore.rules` deployed.
 - [ ] `pnpm --dir apps/web build` passes.

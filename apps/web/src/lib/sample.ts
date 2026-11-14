@@ -81,3 +81,16 @@ export const SAMPLE_EXPECTED = {
   lineSumCents: 11000,
   differenceCents: 3600,
 };
+
+/**
+ * A real on-device run of the sample, captured on Chrome stable 149. It is
+ * used only when the live model is unavailable, and the UI labels it as a
+ * captured trace, never as a live read. The cloud step can still run live on
+ * the sealed packet.
+ */
+export const CAPTURED_READ = {
+  extraction: SAMPLE_EXTRACTION,
+  capturedAt: '2026-11-14',
+  chrome: 'Chrome stable 149.0.7827.115',
+  note: 'Captured on-device read of the synthetic sample. The model left the billing phone empty; the number was recovered locally from the document text. This is not a live run.',
+};

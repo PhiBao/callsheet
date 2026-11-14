@@ -4,10 +4,11 @@ type Props = {
   clientKind: ClientKind;
   clientLabel: string;
   stage: string;
+  captured: boolean;
   onReset: () => void;
 };
 
-export function Masthead({ clientKind, clientLabel, stage, onReset }: Props) {
+export function Masthead({ clientKind, clientLabel, stage, captured, onReset }: Props) {
   return (
     <header className="masthead">
       <div className="brand">
@@ -30,6 +31,7 @@ export function Masthead({ clientKind, clientLabel, stage, onReset }: Props) {
 
       <div className="masthead-meta">
         <span className="pill pill--synthetic">Synthetic demo</span>
+        {captured && <span className="pill pill--local">Captured trace</span>}
         <span className={`pill ${clientKind === 'firebase' ? 'pill--live' : 'pill--local'}`}>
           {clientLabel}
         </span>

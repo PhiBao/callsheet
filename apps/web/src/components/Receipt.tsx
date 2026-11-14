@@ -20,6 +20,8 @@ function sourceLabel(source: InferenceSource | null): string {
       return 'local/on_device';
     case 'LOCAL_CLOUD':
       return 'local/template';
+    case 'CAPTURED_ON_DEVICE':
+      return 'captured/on_device';
     default:
       return '—';
   }

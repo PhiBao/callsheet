@@ -2,27 +2,34 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // A receipt is a hash, two inference sources, and counts. No bill text,
-    // no name, no member id, no phone number. The schema is enforced here as
-    // well as in the client, so a modified client cannot store the document.
+    // A receipt is a hash, two inference sources, check ids, and counts. It is
+    // public and append-only so a judge can inspect the proof without an
+    // account. It never contains the bill, a name, a member id, or a phone.
     match /receipts/{receiptId} {
-      allow read, delete: if request.auth != null
-        && resource.data.owner == request.auth.uid;
-      allow create: if request.auth != null
-        && request.resource.data.owner == request.auth.uid
-        && request.resource.data.keys().hasOnly([
-          'owner', 'packetHash', 'readSource', 'scriptSource',
+      allow read: if true;
+
+      allow create: if request.resource.data.keys().hasOnly([
+          'packetHash', 'readSource', 'scriptSource',
           'checkIds', 'accepted', 'dropped', 'glossaryVersion', 'createdAt'
         ])
         && request.resource.data.packetHash is string
         && request.resource.data.packetHash.size() == 64
-        && request.resource.data.readSource is string
-        && request.resource.data.scriptSource is string
+        && request.resource.data.readSource in [
+          'ON_DEVICE', 'IN_CLOUD', 'LOCAL_ON_DEVICE', 'LOCAL_CLOUD', 'CAPTURED_ON_DEVICE'
+        ]
+        && request.resource.data.scriptSource in [
+          'ON_DEVICE', 'IN_CLOUD', 'LOCAL_ON_DEVICE', 'LOCAL_CLOUD', 'CAPTURED_ON_DEVICE'
+        ]
         && request.resource.data.checkIds is list
         && request.resource.data.checkIds.size() <= 20
         && request.resource.data.accepted is int
+        && request.resource.data.accepted >= 0
         && request.resource.data.dropped is int
-        && request.resource.data.glossaryVersion is string;
+        && request.resource.data.dropped >= 0
+        && request.resource.data.glossaryVersion is string
+        && request.resource.data.createdAt is timestamp;
+
+      allow update, delete: if false;
     }
   }
 }
