@@ -1,0 +1,26 @@
+{
+  "version": "2026-11-14",
+  "note": "Original one-line glosses written for this project. Not copied from the AMA CPT book or any payer. If a code is not listed here, Callsheet abstains from explaining it.",
+  "codes": {
+    "99213": {
+      "glossId": "g-99213",
+      "label": "Office visit, established patient",
+      "gloss": "A routine visit for someone already known to the provider."
+    },
+    "85025": {
+      "glossId": "g-85025",
+      "label": "Complete blood count",
+      "gloss": "A common blood test that counts red cells, white cells, and platelets."
+    },
+    "80053": {
+      "glossId": "g-80053",
+      "label": "Comprehensive metabolic panel",
+      "gloss": "A blood test that checks sugar, electrolytes, kidney, and liver values."
+    },
+    "71046": {
+      "glossId": "g-71046",
+      "label": "Chest X-ray, 2 views",
+      "gloss": "Two pictures of the chest, usually front and side."
+    }
+  }
+}

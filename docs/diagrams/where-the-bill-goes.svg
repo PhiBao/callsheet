@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 820" width="1200" height="820" role="img" aria-labelledby="title desc">
+  <title id="title">Where the bill goes</title>
+  <desc id="desc">The bill, the on-device read, the Rust checks, the seal, the cloud draft, and the call sheet. Only the sealed packet crosses the boundary.</desc>
+  <defs>
+    <marker id="ink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#1c1915" />
+    </marker>
+    <marker id="kept" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#1f4e5f" />
+    </marker>
+  </defs>
+
+  <rect width="1200" height="820" fill="#f4efe6" />
+
+  <text x="56" y="62" font-family="Georgia, 'Times New Roman', serif" font-size="36" fill="#1c1915">Where the bill goes</text>
+  <text x="56" y="90" font-family="system-ui, sans-serif" font-size="14" fill="#5b544a">Callsheet · #BuildHybridAI 2026 · Web/Chrome</text>
+
+  <!-- boundary label above the panels -->
+  <text x="690" y="108" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" letter-spacing="2" fill="#1f4e5f">THE BOUNDARY</text>
+
+  <!-- left panel -->
+  <rect x="48" y="122" width="600" height="640" rx="8" fill="#fffdf8" stroke="#d8cfbf" />
+  <text x="72" y="154" font-family="system-ui, sans-serif" font-size="11" letter-spacing="2" fill="#8a8174">ON THIS COMPUTER</text>
+
+  <!-- bill -->
+  <rect x="72" y="174" width="552" height="120" fill="#ffffff" stroke="#b9ae9c" />
+  <text x="92" y="200" font-family="Georgia, 'Times New Roman', serif" font-size="17" fill="#1c1915">Explanation of benefits</text>
+  <line x1="92" y1="210" x2="604" y2="210" stroke="#1c1915" stroke-width="1" />
+  <text x="92" y="232" font-family="ui-monospace, monospace" font-size="11" fill="#5b544a">Alex Rivera · XYC 8842 1170 · (555) 014-2280</text>
+  <text x="92" y="252" font-family="ui-monospace, monospace" font-size="11" fill="#5b544a">5 lines · printed amount due $146.00</text>
+  <text x="92" y="272" font-family="ui-monospace, monospace" font-size="11" fill="#9c3412">the lines add to $110.00 · duplicate 99213</text>
+  <text x="470" y="272" font-family="system-ui, sans-serif" font-size="10" fill="#9c3412">kept here</text>
+
+  <!-- nano -->
+  <rect x="72" y="320" width="552" height="80" fill="#e6eef0" stroke="#1f4e5f" />
+  <text x="92" y="346" font-family="system-ui, sans-serif" font-size="12" font-weight="600" fill="#1f4e5f">Gemini Nano · Firebase AI Logic</text>
+  <text x="92" y="366" font-family="ui-monospace, monospace" font-size="11" fill="#1f4e5f">ONLY_ON_DEVICE</text>
+  <text x="270" y="366" font-family="system-ui, sans-serif" font-size="11" fill="#5b544a">structured JSON · throws if the model is missing · no cloud fallback</text>
+
+  <!-- rust -->
+  <rect x="72" y="426" width="552" height="86" fill="#ffffff" stroke="#1c1915" />
+  <text x="92" y="450" font-family="system-ui, sans-serif" font-size="12" font-weight="600" fill="#1c1915">Rust / WebAssembly</text>
+  <text x="92" y="470" font-family="ui-monospace, monospace" font-size="11" fill="#5b544a">duplicate · total · citation fence</text>
+  <text x="92" y="490" font-family="system-ui, sans-serif" font-size="11" fill="#5b544a">the same crate the tests exercise · the model cannot change it</text>
+
+  <!-- seal -->
+  <rect x="72" y="538" width="552" height="60" fill="#e6eef0" stroke="#1f4e5f" />
+  <text x="92" y="562" font-family="system-ui, sans-serif" font-size="12" font-weight="600" fill="#1f4e5f">Seal</text>
+  <text x="92" y="582" font-family="ui-monospace, monospace" font-size="11" fill="#1f4e5f">drop private fields</text>
+  <text x="270" y="582" font-family="system-ui, sans-serif" font-size="11" fill="#5b544a">a new struct with only allowed fields</text>
+
+  <!-- call sheet -->
+  <rect x="72" y="624" width="552" height="104" fill="#ffffff" stroke="#1c1915" />
+  <text x="92" y="652" font-family="Georgia, 'Times New Roman', serif" font-size="18" fill="#1c1915">Call sheet</text>
+  <text x="92" y="674" font-family="system-ui, sans-serif" font-size="11" fill="#5b544a">The printed amount due is $146.00. The lines add to $110.00.</text>
+  <text x="92" y="692" font-family="system-ui, sans-serif" font-size="11" fill="#5b544a">Code 99213 appears on more than one line. Was it billed twice?</text>
+  <text x="92" y="714" font-family="ui-monospace, monospace" font-size="11" fill="#1f4e5f">billing office (555) 014-2280 · filled in locally</text>
+
+  <!-- boundary -->
+  <line x1="690" y1="122" x2="690" y2="762" stroke="#1f4e5f" stroke-width="2" stroke-dasharray="7 7" />
+
+  <!-- cloud panel -->
+  <rect x="750" y="122" width="402" height="640" rx="8" fill="#e6eef0" stroke="#1f4e5f" />
+  <text x="774" y="154" font-family="system-ui, sans-serif" font-size="11" letter-spacing="2" fill="#1f4e5f">CLOUD</text>
+
+  <!-- sealed packet -->
+  <rect x="774" y="174" width="354" height="110" fill="#ffffff" stroke="#1f4e5f" />
+  <text x="794" y="200" font-family="system-ui, sans-serif" font-size="12" font-weight="600" fill="#1f4e5f">Sealed packet</text>
+  <text x="794" y="222" font-family="ui-monospace, monospace" font-size="11" fill="#5b544a">lines · dates · codes · amounts</text>
+  <text x="794" y="240" font-family="ui-monospace, monospace" font-size="11" fill="#5b544a">checks · gloss ids</text>
+  <text x="794" y="264" font-family="system-ui, sans-serif" font-size="11" fill="#9c3412">no name · no member ID · no phone · no address</text>
+
+  <!-- flash -->
+  <rect x="774" y="320" width="354" height="90" fill="#ffffff" stroke="#1f4e5f" />
+  <text x="794" y="346" font-family="system-ui, sans-serif" font-size="12" font-weight="600" fill="#1f4e5f">Gemini Flash-Lite · Firebase AI Logic</text>
+  <text x="794" y="366" font-family="ui-monospace, monospace" font-size="11" fill="#5b544a">ONLY_IN_CLOUD</text>
+  <text x="794" y="386" font-family="system-ui, sans-serif" font-size="11" fill="#5b544a">writes the questions from the packet only</text>
+
+  <!-- firebase services -->
+  <rect x="774" y="446" width="354" height="150" fill="#ffffff" stroke="#1f4e5f" />
+  <text x="794" y="472" font-family="system-ui, sans-serif" font-size="12" font-weight="600" fill="#1f4e5f">Firebase services</text>
+  <text x="794" y="494" font-family="ui-monospace, monospace" font-size="11" fill="#5b544a">App Check · reCAPTCHA Enterprise</text>
+  <text x="794" y="512" font-family="ui-monospace, monospace" font-size="11" fill="#5b544a">Anonymous Auth</text>
+  <text x="794" y="530" font-family="ui-monospace, monospace" font-size="11" fill="#5b544a">Firestore receipt · 64-char hash only</text>
+  <text x="794" y="548" font-family="ui-monospace, monospace" font-size="11" fill="#5b544a">Remote Config · model, glossary version</text>
+  <text x="794" y="574" font-family="system-ui, sans-serif" font-size="11" fill="#9c3412">no raw bill text is a valid document here</text>
+
+  <!-- arrows -->
+  <line x1="348" y1="294" x2="348" y2="320" stroke="#1c1915" marker-end="url(#ink)" />
+  <text x="358" y="313" font-family="system-ui, sans-serif" font-size="10" fill="#5b544a">read</text>
+
+  <line x1="348" y1="400" x2="348" y2="426" stroke="#1c1915" marker-end="url(#ink)" />
+  <text x="358" y="419" font-family="system-ui, sans-serif" font-size="10" fill="#5b544a">structured JSON</text>
+
+  <line x1="348" y1="512" x2="348" y2="538" stroke="#1c1915" marker-end="url(#ink)" />
+  <text x="358" y="531" font-family="system-ui, sans-serif" font-size="10" fill="#5b544a">checks</text>
+
+  <line x1="624" y1="568" x2="774" y2="229" stroke="#1f4e5f" stroke-width="2.5" marker-end="url(#kept)" />
+  <rect x="632" y="380" width="112" height="18" fill="#f4efe6" />
+  <text x="638" y="393" font-family="system-ui, sans-serif" font-size="10" font-weight="600" fill="#1f4e5f">only the packet</text>
+
+  <line x1="951" y1="284" x2="951" y2="320" stroke="#1f4e5f" marker-end="url(#kept)" />
+  <text x="961" y="308" font-family="system-ui, sans-serif" font-size="10" fill="#5b544a">prompt + packet</text>
+
+  <line x1="774" y1="365" x2="624" y2="474" stroke="#1f4e5f" stroke-width="2" stroke-dasharray="5 5" marker-end="url(#kept)" />
+  <rect x="632" y="424" width="44" height="16" fill="#f4efe6" />
+  <text x="638" y="436" font-family="system-ui, sans-serif" font-size="10" fill="#1f4e5f">draft</text>
+
+  <line x1="348" y1="598" x2="348" y2="624" stroke="#1c1915" marker-end="url(#ink)" />
+  <text x="358" y="617" font-family="system-ui, sans-serif" font-size="10" fill="#5b544a">fence + fill in</text>
+
+  <text x="56" y="790" font-family="system-ui, sans-serif" font-size="12" fill="#5b544a">The bill is not a field on any request. The packet is the request body.</text>
+</svg>

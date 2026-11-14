@@ -1,0 +1,25 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# builds
+target/
+dist/
+apps/web/dist/
+
+# local env and secrets
+.env
+.env.local
+.env.*.local
+
+# local browser profiles and downloaded models
+.chrome-profile/
+**/callsheet-chrome*/
+
+# test output
+coverage/
+*.log
+.DS_Store
+
+# TypeScript build info
+*.tsbuildinfo

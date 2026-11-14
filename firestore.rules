@@ -1,0 +1,28 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // A receipt is a hash, two inference sources, and counts. No bill text,
+    // no name, no member id, no phone number. The schema is enforced here as
+    // well as in the client, so a modified client cannot store the document.
+    match /receipts/{receiptId} {
+      allow read, delete: if request.auth != null
+        && resource.data.owner == request.auth.uid;
+      allow create: if request.auth != null
+        && request.resource.data.owner == request.auth.uid
+        && request.resource.data.keys().hasOnly([
+          'owner', 'packetHash', 'readSource', 'scriptSource',
+          'checkIds', 'accepted', 'dropped', 'glossaryVersion', 'createdAt'
+        ])
+        && request.resource.data.packetHash is string
+        && request.resource.data.packetHash.size() == 64
+        && request.resource.data.readSource is string
+        && request.resource.data.scriptSource is string
+        && request.resource.data.checkIds is list
+        && request.resource.data.checkIds.size() <= 20
+        && request.resource.data.accepted is int
+        && request.resource.data.dropped is int
+        && request.resource.data.glossaryVersion is string;
+    }
+  }
+}

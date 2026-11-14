@@ -1,0 +1,17 @@
+{
+  "name": "callsheet",
+  "private": true,
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "scripts": {
+    "dev": "pnpm --dir apps/web dev",
+    "build": "pnpm --dir apps/web build",
+    "test": "cargo test -p callsheet-rules && pnpm --dir apps/web test",
+    "e2e": "node scripts/e2e-local.mjs",
+    "diagrams": "node scripts/render-diagrams.mjs",
+    "verify:nano": "node scripts/verify-nano.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.64.0"
+  }
+}

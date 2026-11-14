@@ -1,0 +1,17 @@
+{
+  "name": "callsheet-rules",
+  "type": "module",
+  "description": "Deterministic checks and citation fence for Callsheet",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "files": [
+    "callsheet_rules_bg.wasm",
+    "callsheet_rules.js",
+    "callsheet_rules.d.ts"
+  ],
+  "main": "callsheet_rules.js",
+  "types": "callsheet_rules.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
