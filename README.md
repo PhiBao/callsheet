@@ -243,6 +243,8 @@ not the submission path. The hosted build uses Firebase AI Logic.
 
 ### Firebase setup
 
+The full walkthrough is in `docs/firebase-setup.md`. The short version:
+
 1. Create a Firebase project and a web app.
 2. Enable **AI Logic** and choose the Gemini Developer API (free tier).
 3. Enable **App Check** with reCAPTCHA Enterprise for the web app.
