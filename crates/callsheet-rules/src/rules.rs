@@ -232,9 +232,14 @@ pub fn allowed_codes(packet: &SealedPacket) -> HashSet<&str> {
     packet.lines.iter().map(|l| l.code.as_str()).collect()
 }
 
-/// The gloss ids the cloud is allowed to cite.
+/// The citations the cloud is allowed to use: a gloss id for a code, or a
+/// check id for a deterministic finding.
 pub fn allowed_citations(packet: &SealedPacket) -> HashSet<&str> {
-    packet.glossary.iter().map(|g| g.gloss_id.as_str()).collect()
+    let mut set: HashSet<&str> = packet.glossary.iter().map(|g| g.gloss_id.as_str()).collect();
+    for check in &packet.checks {
+        set.insert(check.id.as_str());
+    }
+    set
 }
 
 /// Assemble the finished sheet from accepted sentences and local values.

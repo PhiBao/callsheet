@@ -342,6 +342,18 @@ mod tests {
     }
 
     #[test]
+    fn accepts_a_check_id_citation() {
+        let draft = CloudDraft {
+            sentences: vec![DraftSentence {
+                text: "The printed amount due is $146.00 and the lines add to $110.00.".into(),
+                citation: Some("total-mismatch".into()),
+            }],
+        };
+        let verdict = verify_draft(&packet(), &extraction(), &draft);
+        assert!(verdict.ok, "dropped: {:?}", verdict.dropped);
+    }
+
+    #[test]
     fn accepts_a_duplicate_question_with_a_line_count() {
         let draft = CloudDraft {
             sentences: vec![DraftSentence {

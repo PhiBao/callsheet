@@ -9,8 +9,8 @@ video.
 - **Tagline:** A medical bill, read on your own computer, turned into the call you should make.
 - **Track:** Web/Chrome
 - **Repo:** https://github.com/PhiBao/callsheet
-- **Hosted URL:** _to be filled after Firebase Hosting_
-- **Video:** _to be filled after recording_
+- **Hosted URL:** https://callsheet-hybrid.web.app
+- **Video:** `docs/video/callsheet-demo.mp4` — upload to YouTube, then paste the public URL here.
 
 ## Description (paste into Devpost)
 
@@ -92,15 +92,15 @@ firestore, remote-config, react, typescript, vite, rust, webassembly, wasm-bindg
 
 ## Pre-submission checklist
 
-- [ ] Firebase project created, AI Logic enabled with the Get started wizard, App Check with
+- [x] Firebase project created, AI Logic enabled with the Get started wizard, App Check with
       reCAPTCHA Enterprise, Firestore, Remote Config.
-- [ ] `apps/web/.env.local` has `VITE_FIREBASE_CONFIG` and `VITE_APP_CHECK_SITE_KEY`.
-- [ ] `firestore.rules` deployed.
-- [ ] `pnpm --dir apps/web build` passes.
-- [ ] Hosted URL loads and the read works on a machine with the model.
-- [ ] The cloud write works from the hosted URL with App Check.
-- [ ] The fence proof works.
-- [ ] The repo is public and the license is visible in the About section.
+- [x] `apps/web/.env.local` has `VITE_FIREBASE_CONFIG` and `VITE_APP_CHECK_SITE_KEY`.
+- [x] `firestore.rules` deployed.
+- [x] `pnpm --dir apps/web build` passes.
+- [x] Hosted URL loads and the read works on a machine with the model.
+- [x] The cloud write works from the hosted URL with App Check.
+- [x] The fence proof works.
+- [x] The repo is public and the license is visible in the About section.
 - [ ] The video is public on YouTube, under three minutes, English, and shows the on-device read.
 - [ ] The Devpost project is submitted, not left as a draft.
 - [ ] The submission is made before 2026-11-30 14:00 PT.

@@ -48,7 +48,10 @@ export function SheetPane({ verdict, phone, note, busy, onProveFence, fenceProve
                     <span>
                       {sentence.text}
                       {sentence.citation && (
-                        <span className="question-cite">source · {sentence.citation}</span>
+                        <span className="question-cite">
+                          {sentence.citation.startsWith('g-') ? 'gloss' : 'check'} ·{' '}
+                          {sentence.citation}
+                        </span>
                       )}
                     </span>
                   </li>

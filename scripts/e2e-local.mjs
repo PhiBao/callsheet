@@ -13,18 +13,20 @@ const flags = [
 const ctx = await chromium.launchPersistentContext(PROFILE, {
   executablePath: CHROME,
   headless: true,
-  ignoreDefaultArgs: ['--disable-component-update', '--disable-background-networking'],
   args: flags,
 });
 const page = ctx.pages()[0] || await ctx.newPage();
 const cdp = await ctx.newCDPSession(page);
 await cdp.send('Network.clearBrowserCache');
 page.on('console', (m) => {
-  if (m.type() === 'error') console.log('[console]', m.text().slice(0, 400));
+  if (m.type() === 'error' || m.text().includes('callsheet')) {
+    console.log('[console]', m.type(), m.text().slice(0, 500));
+  }
 });
 page.on('pageerror', (e) => console.log('[pageerror]', String(e).slice(0, 400)));
 
-await page.goto(`${process.env.BASE_URL || 'http://127.0.0.1:5173/'}?v=${Date.now()}`, { waitUntil: 'networkidle' });
+await page.goto(`${process.env.BASE_URL || 'http://127.0.0.1:5173/'}?v=${Date.now()}`, { waitUntil: 'domcontentloaded' });
+await page.getByRole('button', { name: /Read it on this computer/i }).waitFor({ timeout: 60000 });
 console.log('loaded');
 
 const readButton = page.getByRole('button', { name: /Read it on this computer/i });
@@ -47,7 +49,11 @@ await page.screenshot({ path: '/tmp/opencode/callsheet-review.png', fullPage: tr
 console.log('review screenshot');
 
 await page.getByRole('button', { name: /Write the questions/i }).click();
-await page.waitForSelector('text=Citation fence', { timeout: 60000 });
+console.log('clicked write');
+await page.waitForTimeout(10000);
+console.log('after 10s buttons', JSON.stringify(await page.locator('button').allInnerTexts()));
+console.log('after 10s fence', (await page.locator('body').innerText()).includes('Citation fence'));
+await page.waitForSelector('text=Citation fence', { timeout: 180000 });
 await page.waitForTimeout(500);
 await page.screenshot({ path: '/tmp/opencode/callsheet-done.png', fullPage: true });
 console.log('done screenshot');

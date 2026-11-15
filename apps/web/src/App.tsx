@@ -98,6 +98,7 @@ export default function App() {
         setReceiptId(id);
       }
     } catch (e) {
+      console.error('[callsheet] write failed', e);
       setError(
         e instanceof Error
           ? e.message
@@ -220,6 +221,7 @@ export default function App() {
           busy={stage === 'reading'}
           done={stage !== 'idle' && stage !== 'error'}
           captured={captured}
+          rulesReady={!!rules}
         />
         <SlotPane
           packet={packet}

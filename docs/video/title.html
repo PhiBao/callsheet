@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      :root {
+        --paper: #f4efe6;
+        --ink: #1c1915;
+        --soft: #5b544a;
+        --faint: #8a8174;
+        --kept: #1f4e5f;
+      }
+      * { box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        width: 1440px;
+        height: 900px;
+        background: var(--paper);
+        color: var(--ink);
+        font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      }
+      .card {
+        width: 100%;
+        height: 100%;
+        padding: 66px 80px 54px;
+        display: flex;
+        flex-direction: column;
+      }
+      .kicker {
+        font-size: 17px;
+        letter-spacing: 0.18em;
+        color: var(--soft);
+      }
+      .rule {
+        height: 1px;
+        background: var(--ink);
+        margin-top: 24px;
+      }
+      h1 {
+        font-family: Georgia, "Times New Roman", serif;
+        font-weight: 400;
+        font-size: 74px;
+        line-height: 1.02;
+        letter-spacing: -0.025em;
+        margin: 96px 0 0;
+      }
+      .sub {
+        margin-top: 42px;
+        font-size: 28px;
+        line-height: 1.45;
+        color: var(--soft);
+        max-width: 1120px;
+      }
+      .sub strong {
+        color: var(--ink);
+        font-weight: 400;
+      }
+      .foot {
+        margin-top: auto;
+        display: flex;
+        justify-content: space-between;
+        font-size: 16px;
+        color: var(--faint);
+        letter-spacing: 0.04em;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="kicker">CALLSHEET</div>
+      <div class="rule"></div>
+      <h1>The bill is not the problem.<br />The call is.</h1>
+      <p class="sub">
+        People paste medical bills into chatbots. The name, member ID, and phone go with it.<br />
+        <strong
+          >Callsheet reads the bill on your computer, checks the arithmetic, and writes the
+          questions to ask the billing office.</strong
+        >
+      </p>
+      <div class="foot">
+        <span>BuildHybridAI 2026 · Web/Chrome</span>
+        <span>Firebase AI Logic hybrid inference</span>
+      </div>
+    </div>
+  </body>
+</html>

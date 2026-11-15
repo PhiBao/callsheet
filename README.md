@@ -8,7 +8,7 @@ The name, member ID, account number, phone number, and address never leave the b
 
 Built for **#BuildHybridAI 2026**, Web/Chrome track, using **Firebase AI Logic hybrid inference**.
 
-Repo: **https://github.com/PhiBao/callsheet** · License: Apache-2.0
+**Live:** https://callsheet-hybrid.web.app · **Repo:** https://github.com/PhiBao/callsheet · **License:** Apache-2.0
 
 ```
 $146.00  printed amount due
@@ -86,6 +86,8 @@ valid.
    check ids, and the fence result.
 
 A longer demo script, including the deliberate dropped sentence, is in `docs/demo.md`.
+The two-minute screen recording of the hosted app is in
+[`docs/video/callsheet-demo.mp4`](docs/video/callsheet-demo.mp4).
 
 ![Read, seal, write, verify](docs/diagrams/read-seal-write-verify.png)
 
@@ -193,9 +195,9 @@ glossary:[{ code, gloss_id }]
 | On-device structured read through Firebase AI Logic `ONLY_ON_DEVICE` | Implemented and verified on Chrome stable 149: the model returned a structured read of the sample with the five lines, the `$146.00` amount, and the duplicate `99213`. The UI shows the source from the SDK. |
 | Rust duplicate and total checks | Implemented and tested (`cargo test`, 8 tests). Compiled to WASM and used by the page. |
 | Citation fence | Implemented and tested. Drops a sentence with a number not in the packet, an unknown code, an unknown gloss id, or a private field. |
-| Cloud writing through `ONLY_IN_CLOUD` | Implemented. Needs a Firebase project with AI Logic enabled and App Check configured. |
-| Firestore receipt | Implemented. Public, append-only, and stores a SHA-256 packet hash, sources, check ids, and counts. Never the bill. |
-| App Check | Code path present. The hosted build uses a reCAPTCHA Enterprise site key; the App Check app registration is a console step. |
+| Cloud writing through `ONLY_IN_CLOUD` | Implemented and verified on the hosted app. Gemini Flash-Lite returned five sentences from the sealed packet; the fence kept all five. |
+| Firestore receipt | Implemented and verified. Public, append-only, and stores a SHA-256 packet hash, sources, check ids, and counts. Never the bill. |
+| App Check | Registered with reCAPTCHA Enterprise and initialized in the hosted app. The cloud write works from the hosted URL. |
 | PDF text extraction | `pdf.js` is a should-ship. The reliable demo path is pasted or fixture text. |
 | Photo of a bill | Should-ship. The hybrid SDK supports JPEG/PNG on-device. Not required for the core demo. |
 | Negotiation, fair-price benchmarks, charity-care eligibility, medical or legal advice | Not built, by design. |

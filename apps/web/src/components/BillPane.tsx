@@ -8,9 +8,18 @@ type Props = {
   busy: boolean;
   done: boolean;
   captured: boolean;
+  rulesReady: boolean;
 };
 
-export function BillPane({ extraction, checks, onRead, busy, done, captured }: Props) {
+export function BillPane({
+  extraction,
+  checks,
+  onRead,
+  busy,
+  done,
+  captured,
+  rulesReady,
+}: Props) {
   const flagged = new Set(
     checks.flatMap((c) => (c.id.startsWith('duplicate-') ? c.line_numbers : [])),
   );
@@ -106,7 +115,12 @@ export function BillPane({ extraction, checks, onRead, busy, done, captured }: P
       </article>
 
       <div className="status status--busy" aria-live="polite" style={{ marginTop: 16 }}>
-        {busy ? (
+        {!rulesReady ? (
+          <>
+            <span className="status-dot" />
+            Loading the rules engine…
+          </>
+        ) : busy ? (
           <>
             <span className="status-dot" />
             Reading on this computer. The first prompt can take twenty seconds.
@@ -132,18 +146,20 @@ export function BillPane({ extraction, checks, onRead, busy, done, captured }: P
       <button
         className="button button--wide"
         onClick={onRead}
-        disabled={busy || (done && !captured)}
+        disabled={!rulesReady || busy || (done && !captured)}
         style={{ marginTop: 10 }}
       >
-        {captured
-          ? busy
-            ? 'Reading…'
-            : 'Try a live read'
-          : done
-            ? 'Bill read'
-            : busy
+        {!rulesReady
+          ? 'Loading the rules engine…'
+          : captured
+            ? busy
               ? 'Reading…'
-              : 'Read it on this computer'}
+              : 'Try a live read'
+            : done
+              ? 'Bill read'
+              : busy
+                ? 'Reading…'
+                : 'Read it on this computer'}
       </button>
     </section>
   );
