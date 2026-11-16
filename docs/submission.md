@@ -15,6 +15,8 @@ video.
   The source file is `docs/video/callsheet-demo.mp4` and the sidecar captions are
   `docs/video/callsheet-demo.srt`.
 - **Devpost description:** [`docs/devpost-description.md`](devpost-description.md).
+- **Project media:** six gallery images in `docs/media/` (bill, editable review, sealed packet, call
+  sheet, fence proof, trust boundary) plus `docs/media/thumbnail.jpg`, added through the Devpost MCP.
 
 ## Description (paste into Devpost)
 
