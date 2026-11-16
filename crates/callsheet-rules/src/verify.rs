@@ -5,7 +5,7 @@
 use std::collections::HashSet;
 
 use crate::model::{CloudDraft, Dropped, DraftSentence, Extraction, SealedPacket, Verdict};
-use crate::rules::{allowed_citations, allowed_codes, allowed_numbers};
+use crate::rules::{allowed_citations, allowed_codes, allowed_dates, allowed_numbers};
 
 struct NumberToken {
     raw: String,
@@ -43,6 +43,33 @@ fn is_iso_date(s: &str) -> bool {
 fn in_spans(pos: usize, spans: &[(usize, usize)]) -> bool {
     spans.iter().any(|(s, e)| pos >= *s && pos < *e)
 }
+
+fn iso_dates(text: &str) -> Vec<String> {
+    date_spans(text)
+        .iter()
+        .map(|(start, end)| text[*start..*end].to_string())
+        .collect()
+}
+
+fn digits_only(value: &str) -> String {
+    value.chars().filter(|c| c.is_ascii_digit()).collect()
+}
+
+const COMMON_NAME_WORDS: [&str; 12] = [
+    "patient", "member", "account", "claim", "office", "billing", "service", "amount",
+    "total", "provider", "insurance", "hospital",
+];
+
+const ADVICE_QUESTION: [&str; 9] = [
+    "do not pay", "don't pay", "dont pay", "refuse to pay", "withhold payment",
+    "this is fraud", "fraudulent charge", "illegal charge", "lawsuit",
+];
+
+const ADVICE_IMPERATIVE: [&str; 14] = [
+    "do not pay", "don't pay", "dont pay", "refuse to pay", "withhold", "dispute this charge",
+    "this is fraud", "fraudulent", "illegal charge", "lawsuit", "sue the", "attorney",
+    "legal action", "report them",
+];
 
 fn scan_numbers(text: &str) -> Vec<NumberToken> {
     let bytes = text.as_bytes();
@@ -128,7 +155,44 @@ fn private_hit(text: &str, extraction: &Extraction) -> Option<String> {
             return Some(label.to_string());
         }
     }
+
+    // A name may be split across the sentence. Match any distinctive token.
+    let name = extraction.private.patient_name.trim();
+    if name.len() > 2 {
+        for token in name.split_whitespace() {
+            let token = token.trim();
+            if token.len() > 3 && !COMMON_NAME_WORDS.contains(&token.to_lowercase().as_str()) {
+                if lower.contains(&token.to_lowercase()) {
+                    return Some("patient name".to_string());
+                }
+            }
+        }
+    }
+
+    // Digit identifiers survive reformatting: 555-014-2280 vs 5550142280.
+    for (label, value) in [
+        ("member id", &extraction.private.member_id),
+        ("account number", &extraction.private.account_number),
+        ("provider phone", &extraction.private.provider_phone),
+    ] {
+        let digits = digits_only(value);
+        if digits.len() >= 7 && digits_only(text).contains(&digits) {
+            return Some(label.to_string());
+        }
+    }
+
     None
+}
+
+fn advice_hit(text: &str) -> bool {
+    let lower = text.to_lowercase();
+    let is_question = text.trim_end().ends_with('?');
+    let patterns = if is_question {
+        ADVICE_QUESTION.as_slice()
+    } else {
+        ADVICE_IMPERATIVE.as_slice()
+    };
+    patterns.iter().any(|pattern| lower.contains(pattern))
 }
 
 /// Verify a cloud draft against the packet. Returns the sentences that may be
@@ -140,8 +204,27 @@ pub fn verify_draft(
 ) -> Verdict {
     let numbers = allowed_numbers(packet);
     let codes = allowed_codes(packet);
+    let dates: HashSet<String> = allowed_dates(packet)
+        .into_iter()
+        .map(|value| value.to_string())
+        .collect();
     let allowed_cites = allowed_citations(packet);
     let max_line = packet.lines.len() as i64;
+    let line_amounts: HashSet<i64> = packet
+        .lines
+        .iter()
+        .flat_map(|line| {
+            [
+                line.billed_cents,
+                line.allowed_cents,
+                line.plan_paid_cents,
+                line.patient_cents,
+            ]
+        })
+        .collect();
+    // Packet-level amounts (printed totals, check differences) may appear next to
+    // any code. Line amounts may only appear next to their own code.
+    let packet_level: HashSet<i64> = numbers.difference(&line_amounts).cloned().collect();
 
     let mut accepted = Vec::new();
     let mut dropped = Vec::new();
@@ -190,24 +273,64 @@ pub fn verify_draft(
         let tokens = scan_numbers(&text);
         let mut bad: Option<String> = None;
 
-        for token in &tokens {
-            if in_spans(token.start, &spans) {
-                continue;
+        let sentence_codes: Vec<&str> = tokens
+            .iter()
+            .filter(|token| !in_spans(token.start, &spans))
+            .filter(|token| !token.raw.starts_with('$') && !token.raw.contains('.'))
+            .filter_map(|token| token.raw.parse::<i64>().ok().map(|value| (token.raw.as_str(), value)))
+            .filter(|(_, value)| (1000..=99999).contains(value))
+            .filter(|(raw, _)| codes.contains(raw))
+            .map(|(raw, _)| raw)
+            .collect();
+
+        for date in iso_dates(&text) {
+            if !dates.contains(&date) {
+                bad = Some(format!("date {date} is not in the packet"));
+                break;
             }
-            let is_money = token.raw.starts_with('$') || token.raw.contains('.');
-            if !is_money {
-                if let Ok(int_value) = token.raw.parse::<i64>() {
-                    if (1000..=99999).contains(&int_value) && codes.contains(token.raw.as_str()) {
-                        continue;
-                    }
-                    // A bare small integer is a line number or a count, not a
-                    // dollar amount. Money is written with $ or a decimal.
-                    if int_value <= max_line + 10 {
-                        continue;
+        }
+
+        if bad.is_none() {
+            for token in &tokens {
+                if in_spans(token.start, &spans) {
+                    continue;
+                }
+                let is_money = token.raw.starts_with('$') || token.raw.contains('.');
+                if !is_money {
+                    if let Ok(int_value) = token.raw.parse::<i64>() {
+                        if (1000..=99999).contains(&int_value) && codes.contains(token.raw.as_str()) {
+                            continue;
+                        }
+                        // A bare small integer is a line number or a count, not a
+                        // dollar amount. Money is written with $ or a decimal.
+                        if int_value <= max_line + 10 {
+                            continue;
+                        }
                     }
                 }
-            }
-            if !numbers.contains(&token.cents) {
+                if packet_level.contains(&token.cents) {
+                    continue;
+                }
+                if !sentence_codes.is_empty() {
+                    let belongs = packet.lines.iter().any(|line| {
+                        sentence_codes.contains(&line.code.as_str())
+                            && (line.billed_cents == token.cents
+                                || line.allowed_cents == token.cents
+                                || line.plan_paid_cents == token.cents
+                                || line.patient_cents == token.cents)
+                    });
+                    if belongs {
+                        continue;
+                    }
+                    bad = Some(format!(
+                        "amount ${:.2} is not a charge for the code named here",
+                        token.cents as f64 / 100.0
+                    ));
+                    break;
+                }
+                if numbers.contains(&token.cents) {
+                    continue;
+                }
                 bad = Some(format!(
                     "amount ${:.2} is not in the packet",
                     token.cents as f64 / 100.0
@@ -246,6 +369,10 @@ pub fn verify_draft(
             }
         }
 
+        if bad.is_none() && advice_hit(&text) {
+            bad = Some("advisory language is not allowed".into());
+        }
+
         if let Some(reason) = bad {
             dropped.push(Dropped { text, reason });
         } else {
@@ -275,7 +402,6 @@ mod tests {
                 SealedLine {
                     date: "2026-10-02".into(),
                     code: "99213".into(),
-                    description: "Office visit, established".into(),
                     billed_cents: 18000,
                     allowed_cents: 12800,
                     plan_paid_cents: 10200,
@@ -284,11 +410,18 @@ mod tests {
                 SealedLine {
                     date: "2026-10-02".into(),
                     code: "99213".into(),
-                    description: "Office visit, established".into(),
                     billed_cents: 18000,
                     allowed_cents: 12800,
                     plan_paid_cents: 10200,
                     patient_cents: 2600,
+                },
+                SealedLine {
+                    date: "2026-10-02".into(),
+                    code: "85025".into(),
+                    billed_cents: 9000,
+                    allowed_cents: 6200,
+                    plan_paid_cents: 4900,
+                    patient_cents: 1300,
                 },
             ],
             printed_amount_due_cents: 14600,
@@ -322,6 +455,7 @@ mod tests {
             private: PrivateFields {
                 patient_name: "Alex Rivera".into(),
                 member_id: "XYC 8842 1170".into(),
+                provider_phone: "(555) 014-2280".into(),
                 ..Default::default()
             },
             lines: vec![
@@ -351,6 +485,70 @@ mod tests {
             printed_total_patient_cents: None,
             claim_number: None,
         }
+    }
+
+    #[test]
+    fn drops_an_amount_that_belongs_to_a_different_code() {
+        let draft = CloudDraft {
+            sentences: vec![DraftSentence {
+                text: "Code 99213 was charged at $13.00.".into(),
+                citation: None,
+            }],
+        };
+        let verdict = verify_draft(&packet(), &extraction(), &draft);
+        assert!(!verdict.ok, "accepted: {:?}", verdict.accepted);
+        assert!(verdict.dropped[0].reason.contains("not a charge for the code"));
+    }
+
+    #[test]
+    fn drops_a_date_that_is_not_on_the_bill() {
+        let draft = CloudDraft {
+            sentences: vec![DraftSentence {
+                text: "Was code 99213 performed on 2026-12-25?".into(),
+                citation: None,
+            }],
+        };
+        let verdict = verify_draft(&packet(), &extraction(), &draft);
+        assert!(!verdict.ok);
+        assert!(verdict.dropped[0].reason.contains("2026-12-25"));
+    }
+
+    #[test]
+    fn drops_imperative_advice() {
+        let draft = CloudDraft {
+            sentences: vec![DraftSentence {
+                text: "Do not pay this bill until they send an itemized statement.".into(),
+                citation: None,
+            }],
+        };
+        let verdict = verify_draft(&packet(), &extraction(), &draft);
+        assert!(!verdict.ok);
+        assert!(verdict.dropped[0].reason.contains("advisory"));
+    }
+
+    #[test]
+    fn allows_a_question_that_mentions_disputing() {
+        let draft = CloudDraft {
+            sentences: vec![DraftSentence {
+                text: "Should I dispute this charge with the billing office?".into(),
+                citation: None,
+            }],
+        };
+        let verdict = verify_draft(&packet(), &extraction(), &draft);
+        assert!(verdict.ok, "dropped: {:?}", verdict.dropped);
+    }
+
+    #[test]
+    fn drops_a_reformatted_phone_number() {
+        let draft = CloudDraft {
+            sentences: vec![DraftSentence {
+                text: "Please call me back at 5550142280.".into(),
+                citation: None,
+            }],
+        };
+        let verdict = verify_draft(&packet(), &extraction(), &draft);
+        assert!(!verdict.ok);
+        assert!(verdict.dropped[0].reason.contains("phone"));
     }
 
     #[test]

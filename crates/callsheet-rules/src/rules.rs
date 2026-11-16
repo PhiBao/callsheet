@@ -169,7 +169,6 @@ pub fn seal(extraction: &Extraction, glossary: &[GlossRef]) -> SealedPacket {
         .map(|l| SealedLine {
             date: l.date.clone(),
             code: l.code.clone(),
-            description: l.description.clone(),
             billed_cents: l.billed_cents,
             allowed_cents: l.allowed_cents,
             plan_paid_cents: l.plan_paid_cents,

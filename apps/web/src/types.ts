@@ -30,7 +30,6 @@ export type Extraction = {
 export type SealedLine = {
   date: string;
   code: string;
-  description: string;
   billed_cents: number;
   allowed_cents: number;
   plan_paid_cents: number;

@@ -22,6 +22,8 @@ function sourceLabel(source: InferenceSource | null): string {
       return 'local/template';
     case 'CAPTURED_ON_DEVICE':
       return 'captured/on_device';
+    case 'FIXTURE_PARSE':
+      return 'local/parse';
     default:
       return '—';
   }

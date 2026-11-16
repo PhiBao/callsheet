@@ -66,6 +66,20 @@ await page.waitForTimeout(1000);
 await page.screenshot({ path: '/tmp/opencode/phase1-sheet.png', fullPage: true });
 console.log('sheet screenshot');
 
+const prove = page.getByRole('button', { name: /Prove the fence/i });
+if (await prove.count()) {
+  await prove.click();
+  await page.waitForTimeout(800);
+  await page.screenshot({ path: '/tmp/opencode/phase3-fence.png', fullPage: true });
+  console.log('fence screenshot');
+}
+
+await page.emulateMedia({ media: 'print' });
+await page.waitForTimeout(400);
+await page.screenshot({ path: '/tmp/opencode/phase2-print.png', fullPage: true });
+await page.emulateMedia({ media: 'screen' });
+console.log('print screenshot');
+
 const text = await page.locator('body').innerText();
 console.log('has Dana:', text.includes('Dana Whitfield'));
 console.log('has 70450:', text.includes('70450'));

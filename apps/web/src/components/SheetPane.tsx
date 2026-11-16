@@ -1,8 +1,10 @@
+import type { Sheet } from '../lib/sheet';
+import { sheetToText } from '../lib/sheet';
 import type { Verdict } from '../types';
 
 type Props = {
+  sheet: Sheet | null;
   verdict: Verdict | null;
-  phone: string;
   note?: string;
   busy: boolean;
   onProveFence: () => void;
@@ -10,7 +12,31 @@ type Props = {
   onUseTemplate: () => void;
 };
 
-export function SheetPane({ verdict, phone, note, busy, onProveFence, fenceProved, onUseTemplate }: Props) {
+export function SheetPane({
+  sheet,
+  verdict,
+  note,
+  busy,
+  onProveFence,
+  fenceProved,
+  onUseTemplate,
+}: Props) {
+  function handleCopy() {
+    if (!sheet) return;
+    void navigator.clipboard?.writeText(sheetToText(sheet)).catch(() => {});
+  }
+
+  function handleDownload() {
+    if (!sheet) return;
+    const blob = new Blob([sheetToText(sheet)], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'callsheet.txt';
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <section className="desk-col desk-col--sheet" aria-labelledby="sheet-heading">
       <div className="sheet">
@@ -26,7 +52,7 @@ export function SheetPane({ verdict, phone, note, busy, onProveFence, fenceProve
           <span className="sheet-sub">one page · no login</span>
         </div>
 
-        {!verdict ? (
+        {!sheet ? (
           <div className="sheet-empty">
             <strong>The sheet appears after the questions are written.</strong>
             <p>
@@ -42,19 +68,25 @@ export function SheetPane({ verdict, phone, note, busy, onProveFence, fenceProve
           </div>
         ) : (
           <>
-            {verdict.accepted.length > 0 ? (
+            <div className="sheet-actions no-print">
+              <button className="button button--ghost" onClick={() => window.print()}>
+                Print
+              </button>
+              <button className="button button--ghost" onClick={handleCopy}>
+                Copy
+              </button>
+              <button className="button button--ghost" onClick={handleDownload}>
+                Download
+              </button>
+            </div>
+
+            <p className="sheet-opener">{sheet.opener}</p>
+
+            {sheet.questions.length > 0 ? (
               <ol className="questions">
-                {verdict.accepted.map((sentence, i) => (
-                  <li className="question" key={`${sentence.text}-${i}`}>
-                    <span>
-                      {sentence.text}
-                      {sentence.citation && (
-                        <span className="question-cite">
-                          {sentence.citation.startsWith('g-') ? 'gloss' : 'check'} ·{' '}
-                          {sentence.citation}
-                        </span>
-                      )}
-                    </span>
+                {sheet.questions.map((question, i) => (
+                  <li className="question" key={`${question}-${i}`}>
+                    <span>{question}</span>
                   </li>
                 ))}
               </ol>
@@ -74,9 +106,18 @@ export function SheetPane({ verdict, phone, note, busy, onProveFence, fenceProve
               </div>
             )}
 
+            <dl className="write-down">
+              {sheet.writeDown.map((row) => (
+                <div key={row.label}>
+                  <dt>{row.label}</dt>
+                  <dd />
+                </div>
+              ))}
+            </dl>
+
             <div className="phone">
               <span className="phone-label">Billing office</span>
-              <span className="phone-number">{phone || '—'}</span>
+              <span className="phone-number">{sheet.phone}</span>
             </div>
 
             <p className="sheet-note">
@@ -84,19 +125,19 @@ export function SheetPane({ verdict, phone, note, busy, onProveFence, fenceProve
               number was never in the packet.
             </p>
 
-            <div className="fence">
+            <div className="fence no-print">
               <div className="fence-head">
                 <span>Citation fence</span>
                 <span>
-                  {verdict.accepted.length} kept · {verdict.dropped.length} dropped
+                  {verdict?.accepted.length ?? 0} kept · {verdict?.dropped.length ?? 0} dropped
                 </span>
               </div>
-              {verdict.dropped.length === 0 ? (
+              {verdict && verdict.dropped.length === 0 ? (
                 <div className="fence-empty">
                   Every sentence used a number, code, or gloss that was already in the packet.
                 </div>
               ) : (
-                verdict.dropped.map((d, i) => (
+                verdict?.dropped.map((d, i) => (
                   <div className="fence-item" key={`${d.text}-${i}`}>
                     <span>{d.text}</span>
                     <em>{d.reason}</em>
@@ -119,8 +160,7 @@ export function SheetPane({ verdict, phone, note, busy, onProveFence, fenceProve
         )}
 
         <p className="sheet-note" style={{ marginTop: 'auto' }}>
-          A reading aid, not medical, legal, or financial advice. Callsheet does not tell you to pay
-          or not to pay. It helps you ask better questions.
+          {sheet?.disclaimer ?? 'A reading aid, not medical, legal, or financial advice.'}
         </p>
       </div>
     </section>

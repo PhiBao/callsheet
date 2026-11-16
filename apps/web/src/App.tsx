@@ -12,6 +12,7 @@ import { loadRules, sha256Hex, type Rules } from './lib/rules';
 import { writeAndVerify, type ScriptRun } from './lib/pipeline';
 import { SAMPLE_BILL_TEXT, SAMPLE_EXTRACTION, CAPTURED_READ } from './lib/sample';
 import { parseEobText } from './lib/parse';
+import { buildSheet } from './lib/sheet';
 import type { Extraction, SealedPacket } from './types';
 
 type Stage = 'idle' | 'reading' | 'review' | 'writing' | 'done' | 'error';
@@ -215,6 +216,9 @@ export default function App() {
 
   function handleProveFence() {
     if (!rules || !packet || !script) return;
+    const firstCode = packet.lines[0]?.code ?? '99213';
+    const patient = extraction.private.patient_name || 'the patient';
+    const phone = extraction.private.provider_phone || '555-014-2280';
     const planted = {
       sentences: [
         ...script.draft.sentences,
@@ -223,7 +227,15 @@ export default function App() {
           citation: null,
         },
         {
-          text: 'Alex Rivera should call the number on the back of the card.',
+          text: `${patient} should call the number on the back of the card.`,
+          citation: null,
+        },
+        {
+          text: `Please call me back at ${phone.replace(/[^0-9]/g, '')}.`,
+          citation: null,
+        },
+        {
+          text: `Code ${firstCode} was also charged at $90.00.`,
           citation: null,
         },
       ],
@@ -248,8 +260,8 @@ export default function App() {
   }
 
   const checks = packet?.checks ?? [];
-  const phone = extraction.private.provider_phone || SAMPLE_EXTRACTION.private.provider_phone;
   const showReview = stage === 'review';
+  const sheet = script && packet ? buildSheet(packet, script.verdict, extraction) : null;
 
   return (
     <div className="app">
@@ -356,8 +368,8 @@ export default function App() {
           />
         )}
         <SheetPane
+          sheet={sheet}
           verdict={script?.verdict ?? null}
-          phone={phone}
           note={script?.note}
           busy={stage === 'writing'}
           onProveFence={handleProveFence}

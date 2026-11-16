@@ -128,6 +128,26 @@ export function ReviewPane({ extraction, checks, onSeal, onParse, onEdit }: Prop
               />
             </dd>
           </div>
+          <div>
+            <dt>Provider</dt>
+            <dd>
+              <input
+                className="cell-input cell-input--wide"
+                value={extraction.private.provider_name}
+                onChange={(e) => updatePrivate('provider_name', e.target.value)}
+              />
+            </dd>
+          </div>
+          <div>
+            <dt>Address</dt>
+            <dd>
+              <input
+                className="cell-input cell-input--wide"
+                value={extraction.private.service_address}
+                onChange={(e) => updatePrivate('service_address', e.target.value)}
+              />
+            </dd>
+          </div>
         </dl>
 
         {checks.length > 0 && (

@@ -7,7 +7,6 @@ import type {
   ScriptResult,
   SealedPacket,
 } from '../types';
-import { glossFor } from './glossary';
 
 export type ClientKind = 'firebase' | 'local';
 
@@ -41,7 +40,8 @@ const SCRIPT_PROMPT = `You write short questions for a billing office.
 Use only the dollar amounts, codes, dates, and gloss ids in the packet below.
 Never mention the patient name, member id, account number, phone number, or address.
 Every sentence must be a question or a request that a person can read aloud on a phone call.
-If you explain a code, set citation to that code's gloss id. Otherwise set citation to the string null.
+If you explain a code, set citation to that code's gloss id. Do not write the gloss text; it is
+appended on the device. Otherwise set citation to the string null.
 Return JSON with a sentences array of { text, citation }. A citation is only a gloss id from the
 packet, or null.`;
 
@@ -190,10 +190,8 @@ export function templateDraft(packet: SealedPacket): CloudDraft {
     });
   }
   for (const ref of packet.glossary) {
-    const entry = glossFor(ref.code);
-    if (!entry) continue;
     sentences.push({
-      text: `What was code ${ref.code} for? ${entry.gloss}`,
+      text: `What was code ${ref.code} for?`,
       citation: ref.gloss_id,
     });
   }

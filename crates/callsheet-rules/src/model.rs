@@ -41,12 +41,12 @@ pub struct Extraction {
     pub claim_number: Option<String>,
 }
 
-/// A line with the private fields removed.
+/// A line with the private fields and the free-text description removed.
+/// The cloud gets codes and amounts only; descriptions stay on the device.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct SealedLine {
     pub date: String,
     pub code: String,
-    pub description: String,
     pub billed_cents: i64,
     pub allowed_cents: i64,
     pub plan_paid_cents: i64,

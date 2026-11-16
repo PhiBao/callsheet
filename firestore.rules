@@ -15,10 +15,10 @@ service cloud.firestore {
         && request.resource.data.packetHash is string
         && request.resource.data.packetHash.size() == 64
         && request.resource.data.readSource in [
-          'ON_DEVICE', 'IN_CLOUD', 'LOCAL_ON_DEVICE', 'LOCAL_CLOUD', 'CAPTURED_ON_DEVICE'
+          'ON_DEVICE', 'IN_CLOUD', 'LOCAL_ON_DEVICE', 'LOCAL_CLOUD', 'CAPTURED_ON_DEVICE', 'FIXTURE_PARSE'
         ]
         && request.resource.data.scriptSource in [
-          'ON_DEVICE', 'IN_CLOUD', 'LOCAL_ON_DEVICE', 'LOCAL_CLOUD', 'CAPTURED_ON_DEVICE'
+          'ON_DEVICE', 'IN_CLOUD', 'LOCAL_ON_DEVICE', 'LOCAL_CLOUD', 'CAPTURED_ON_DEVICE', 'FIXTURE_PARSE'
         ]
         && request.resource.data.checkIds is list
         && request.resource.data.checkIds.size() <= 20

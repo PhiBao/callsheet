@@ -120,8 +120,9 @@ export function BillPane({
         </div>
 
         <div className="bill-foot">
-          Remit to {extraction.private.provider_name}, PO Box 4410, Springfield. Include the account
-          number.
+          {extraction.private.provider_name
+            ? `Remit to ${extraction.private.provider_name}. Include the account number.`
+            : 'Include the account number on your payment.'}
         </div>
         </article>
       )}
