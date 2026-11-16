@@ -1,91 +1,73 @@
 # Demo and test plan
 
-## The three-minute video
+## The demo video
 
-The first thirty seconds have to say who it is for, what the problem is, and how Firebase AI Logic
-makes the private read possible. Judges may score from the video alone.
+The video is 1:40, well inside the three-minute limit. It has to say who the product is for, what
+the problem is, and how Firebase AI Logic makes the private read possible. Judges may score from
+the video alone.
 
 The recording is `docs/video/callsheet-demo.mp4` (1:40, 1920×1080, narrated, subtitles burned in
 and a sidecar `.srt`). It is a real screen recording of the hosted app, cut into five segments: a
 title card, the real read starting, a hybrid-split explainer while the slow first read runs, the
 review and sheet from the labeled captured read, and a close card.
 
-### 0:00–0:08 — Title card
+### 0:00–0:12 — Title card
 
-> Paste any bill. It is read on your computer, checked in Rust, and never leaves the browser.
+> People paste medical bills into chatbots. The name, the member ID, and the phone number go with
+> them. Callsheet does the reading on your own computer instead.
 
-### 0:08–0:20 — The bill
+### 0:12–0:34 — The real read starts
 
-The desk is on screen. The synthetic bill is on the left, the boundary in the middle, the sheet on
-the right. Nothing has been read yet.
+The hosted app opens on the synthetic bill: printed amount due `$146.00`, the lines adding to
+`$110.00`, and code `99213` on two lines with the same date. **Read it on this computer** is
+pressed, and the status line shows the on-device read starting.
 
-> This is an explanation of benefits. People paste these into chatbots. The name, member ID, and
-> phone go with it.
+> This is a real explanation of benefits. The printed amount due is one hundred forty-six dollars.
+> The lines add up to one hundred ten. Two visits carry the same code. Press read. The model runs
+> here, through Firebase AI Logic. The bill is not uploaded.
 
-### 0:20–0:25 — The source bar
+### 0:34–0:59 — The split, while the read runs
 
-Point at the three tabs: Sample bill, Paste text, Upload PDF.
+A full-screen explainer card shows the boundary: the read, the Rust checks, and the seal stay on the
+computer; only the sealed packet crosses; the questions come back to the fence; the phone is filled
+in locally.
 
-> Or your own. Paste it, or drop in a PDF. The text is read in this tab.
+> On-device is private, and it costs nothing to run. It is also slow, and it is small. So the device
+> does what it is good at: it reads the document, and it checks it. The cloud does what it is good
+> at: it writes the questions. Between them is a sealed packet. No name, no member ID, no phone. The
+> bill never crosses.
 
-### 0:25–1:30 — The private read
+### 0:59–1:27 — The review, the sheet, and the fence
 
-Click **Read it on this computer**. The status line says the model is working. The wait is real:
-20 to 60 seconds on a warm machine, longer the first time.
+The recording resumes at `?demo=captured`, which opens the captured read with the UI labeled as
+captured. The five editable lines are shown, the packet is sealed, the cloud writes from the packet
+alone, the sheet puts the phone number back locally, and **Prove the fence** drops all four planted
+sentences.
 
-> This is Gemini Nano, through Firebase AI Logic, in ONLY_ON_DEVICE mode. If this browser cannot run
-> the model, the read refuses. It does not upload the bill.
+> This is the read from that run. Five lines, every amount editable. Nothing is sealed until you say
+> so. Seal it. The cloud writes from the packet alone. The sheet puts the phone number back, locally.
+> And the check the model cannot change: a made-up fee, a patient name, a phone number, and an
+> amount on the wrong code. All four are dropped, each with its reason.
 
-### 1:30–1:40 — The review
+### 1:27–1:40 — Close card
 
-The middle column becomes the review: five line cards, each with editable description, billed,
-allowed, plan, and patient share. Below them the private fields, also editable.
-
-> This is what the model read. Correct anything wrong before it is sealed. The packet is built from
-> these numbers, not from the original document.
-
-### 1:40–1:50 — Seal and write
-
-Click **Looks right — seal the packet**, then the write runs.
-
-> The packet drops the private fields at the boundary. The cloud sees codes, dates, and amounts.
-
-### 1:50–2:00 — The sheet
-
-> The cloud wrote the questions. The Rust fence checked every sentence before it reached this
-> page. The phone number is filled in here, locally. It was never in the packet.
-
-### 2:00–2:08 — Prove the fence
-
-Click **Prove the fence**. Four planted sentences appear with their reasons:
-
-| Planted | Reason shown |
-| --- | --- |
-| "You should also ask about the $999.00 facility fee on this bill." | amount $999.00 is not in the packet |
-| "Alex Rivera should call the number on the back of the card." | mentions a private field: patient name |
-| "Please call me back at 5550142280." | mentions a private field: provider phone |
-| "Code 99213 was also charged at $90.00." | amount $90.00 is not a charge for the code named here |
-
-> An amount that belongs to another code is dropped. A number that was never on the bill is
-> dropped. A name or a phone number is dropped. The model writes the prose. It does not get to
-> change the arithmetic.
-
-### 2:08 — End card
-
-> A bill, turned into the call you should make. A private on-device read. A sealed packet. A check
-> the model cannot change.
+> A private read. A sealed packet. A check the model cannot change. Callsheet. The code, the live
+> demo, and the proof are in the repository.
 
 ## Recording checklist
 
 - Use desktop Chrome with the built-in model available. On this machine the full Chrome stable build
   is at `/home/kiter/.cache/chrome-stable/root/opt/google/chrome/chrome`, and the profile with the
   model is `/home/kiter/.cache/callsheet-chrome-stable`.
-- Record at 1600×1200 so the whole desk fits without scrolling.
-- Record the live read. Do not preload the extraction. If the model is slow, keep the wait: the
-  status line explains it and honesty scores better than a cut.
+- Record at 1920×1080.
+- Pre-warm the built-in model with the project's `assets/warm.js` init script. A cold first read
+  takes 40 to 120 seconds; the recording is 1:40 total.
+- Start the read live. Cut to the explainer while it runs, and resume on the labeled captured read
+  for the review, the sheet, and the fence. Do not present the captured entry as a live read.
 - Record the fence proof live.
 - Keep the synthetic pill visible in every shot.
-- Upload to YouTube as public. Processing can take hours.
+- Upload to YouTube as public, attach `docs/video/callsheet-demo.srt` as the caption track, and
+  paste the URL into the submission pack.
 
 ## Judge test path
 
