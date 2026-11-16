@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import type { Sheet } from '../lib/sheet';
 import { sheetToText } from '../lib/sheet';
 import type { Verdict } from '../types';
@@ -21,6 +22,13 @@ export function SheetPane({
   fenceProved,
   onUseTemplate,
 }: Props) {
+  const fenceRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (fenceProved) {
+      fenceRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }
+  }, [fenceProved]);
   function handleCopy() {
     if (!sheet) return;
     void navigator.clipboard?.writeText(sheetToText(sheet)).catch(() => {});
@@ -125,7 +133,7 @@ export function SheetPane({
               number was never in the packet.
             </p>
 
-            <div className="fence no-print">
+            <div className="fence no-print" ref={fenceRef}>
               <div className="fence-head">
                 <span>Citation fence</span>
                 <span>

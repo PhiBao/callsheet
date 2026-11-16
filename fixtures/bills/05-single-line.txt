@@ -1,0 +1,14 @@
+CEDAR GROVE CLINIC
+Billing office: (555) 019-2204
+
+Patient: Tomás Álvarez
+Member ID: NNN 1010 2020
+Claim number: CLM-2026-06-0303
+
+Line  Date        Code    Description              Billed      Allowed     Plan paid   You owe
+1     2026-06-05  99213   Office visit, established  $180.00     $128.00     $102.00     $26.00
+
+Total billed:                          $180.00
+Total patient responsibility:          $26.00
+
+Amount due from patient:               $26.00

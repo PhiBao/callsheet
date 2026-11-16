@@ -8,6 +8,9 @@ type Props = {
   accepted: number;
   dropped: number;
   receiptId: string | null;
+  readMs?: number | null;
+  writeMs?: number | null;
+  glossaryVersion?: string;
 };
 
 function sourceLabel(source: InferenceSource | null): string {
@@ -45,6 +48,9 @@ export function Receipt({
   accepted,
   dropped,
   receiptId,
+  readMs,
+  writeMs,
+  glossaryVersion,
 }: Props) {
   return (
     <section className="receipt" aria-label="Proof receipt">
@@ -78,6 +84,17 @@ export function Receipt({
         <div className="receipt-item">
           <dt>Receipt</dt>
           <dd>{receiptId ?? 'local only'}</dd>
+        </div>
+        <div className="receipt-item">
+          <dt>Timing</dt>
+          <dd>
+            {readMs != null ? `read ${(readMs / 1000).toFixed(1)}s` : 'read —'}
+            {writeMs != null ? ` · write ${(writeMs / 1000).toFixed(1)}s` : ''}
+          </dd>
+        </div>
+        <div className="receipt-item">
+          <dt>Glossary</dt>
+          <dd>{glossaryVersion || '—'}</dd>
         </div>
       </div>
     </section>

@@ -1,0 +1,60 @@
+{
+  "note": "Expected on-device read of each fixture. Used to measure extraction accuracy.",
+  "bills": [
+    {
+      "file": "fixtures/sample-bill.txt",
+      "name": "sample",
+      "patient_name": "Alex Rivera",
+      "member_id": "XYC 8842 1170",
+      "provider_phone": "(555) 014-2280",
+      "lines": 5,
+      "printed_amount_due_cents": 14600,
+      "line_patient_cents": [2600, 2600, 1300, 1700, 2800],
+      "codes": ["99213", "99213", "85025", "80053", "71046"]
+    },
+    {
+      "file": "fixtures/bills/02-clean.txt",
+      "name": "clean",
+      "patient_name": "Priya Raman",
+      "member_id": "BBB 2233 8891",
+      "provider_phone": "(555) 019-3301",
+      "lines": 2,
+      "printed_amount_due_cents": 4100,
+      "line_patient_cents": [3400, 700],
+      "codes": ["99214", "87880"]
+    },
+    {
+      "file": "fixtures/bills/03-hospital.txt",
+      "name": "hospital",
+      "patient_name": "Marcus Feld",
+      "member_id": "ZZ 5510 9930",
+      "provider_phone": "(555) 019-4400",
+      "lines": 3,
+      "printed_amount_due_cents": 6700,
+      "line_patient_cents": [2600, 1300, 2800],
+      "codes": ["99213", "85025", "71046"]
+    },
+    {
+      "file": "fixtures/bills/04-total-mismatch.txt",
+      "name": "total-mismatch",
+      "patient_name": "Elena Ruiz",
+      "member_id": "KLM 7742 0091",
+      "provider_phone": "(555) 019-7702",
+      "lines": 2,
+      "printed_amount_due_cents": 7800,
+      "line_patient_cents": [2600, 1300],
+      "codes": ["99213", "85025"]
+    },
+    {
+      "file": "fixtures/bills/05-single-line.txt",
+      "name": "single-line",
+      "patient_name": "Tomás Álvarez",
+      "member_id": "NNN 1010 2020",
+      "provider_phone": "(555) 019-2204",
+      "lines": 1,
+      "printed_amount_due_cents": 2600,
+      "line_patient_cents": [2600],
+      "codes": ["99213"]
+    }
+  ]
+}

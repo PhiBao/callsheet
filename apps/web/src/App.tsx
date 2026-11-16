@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Masthead } from './components/Masthead';
 import { BillPane } from './components/BillPane';
 import { SlotPane } from './components/SlotPane';
@@ -9,10 +9,11 @@ import { SourceBar } from './components/SourceBar';
 import { getClient, templateDraft } from './lib/ai';
 import { GLOSS_REFS, GLOSSARY_VERSION } from './lib/glossary';
 import { loadRules, sha256Hex, type Rules } from './lib/rules';
-import { writeAndVerify, type ScriptRun } from './lib/pipeline';
+import { writeAndVerify, withTimeout, type ScriptRun } from './lib/pipeline';
 import { SAMPLE_BILL_TEXT, SAMPLE_EXTRACTION, CAPTURED_READ } from './lib/sample';
 import { parseEobText } from './lib/parse';
 import { buildSheet } from './lib/sheet';
+import { describeError } from './lib/errors';
 import type { Extraction, SealedPacket } from './types';
 
 type Stage = 'idle' | 'reading' | 'review' | 'writing' | 'done' | 'error';
@@ -36,6 +37,10 @@ export default function App() {
   const [fenceProved, setFenceProved] = useState(false);
   const [captured, setCaptured] = useState(false);
   const [modelStatus, setModelStatus] = useState<ModelStatus>('unknown');
+  const [readMs, setReadMs] = useState<number | null>(null);
+  const [writeMs, setWriteMs] = useState<number | null>(null);
+  const [glossaryVersion, setGlossaryVersion] = useState<string>('');
+  const cancelRef = useRef(false);
 
   const [sourceMode, setSourceMode] = useState<SourceMode>('sample');
   const [pasteText, setPasteText] = useState('');
@@ -119,7 +124,10 @@ export default function App() {
     try {
       const run = await writeAndVerify(client, rules, sealed, nextExtraction);
       setScript({ ...run, note: captured ? CAPTURED_READ.note : run.note });
+      setWriteMs(run.elapsed_ms);
       setStage('done');
+      const settings = await client.settings();
+      setGlossaryVersion(settings.glossaryVersion || GLOSSARY_VERSION);
       const id = await client.recordReceipt({
         packetHash: hash,
         readSource: readSource ?? 'ON_DEVICE',
@@ -127,17 +135,23 @@ export default function App() {
         checkIds: sealed.checks.map((c) => c.id),
         accepted: run.verdict.accepted.length,
         dropped: run.verdict.dropped.length,
-        glossaryVersion: GLOSSARY_VERSION,
+        glossaryVersion: settings.glossaryVersion || GLOSSARY_VERSION,
       });
       setReceiptId(id);
     } catch (e) {
       console.error('[callsheet] write failed', e);
-      setError(
-        e instanceof Error
-          ? e.message
-          : 'The writing step failed. The packet was sealed, but the cloud did not answer.',
-      );
-      setStage('review');
+      // Never dead-end on a cloud failure. The deterministic questions come
+      // from the sealed packet and are safe by construction.
+      const draft = templateDraft(sealed);
+      const verdict = rules.verify(sealed, nextExtraction, draft);
+      setScript({
+        draft,
+        verdict,
+        source: 'LOCAL_CLOUD',
+        elapsed_ms: 0,
+        note: `${describeError(e)} The deterministic questions built from the sealed packet were used instead.`,
+      });
+      setStage('done');
     }
   }
 
@@ -157,8 +171,23 @@ export default function App() {
     setPacket(null);
     setPacketHash(null);
     setCaptured(false);
+    cancelRef.current = false;
+    if (modelStatus === 'unavailable' || modelStatus === 'not-exposed') {
+      setError(
+        'This browser cannot run the on-device model, so the bill was not read and nothing was uploaded. The deterministic parser can still read the document.',
+      );
+      setStage('error');
+      return;
+    }
+    const budget =
+      modelStatus === 'downloadable' || modelStatus === 'downloading' ? 300000 : 180000;
     try {
-      const read = await client.readBill(documentText);
+      const read = await withTimeout(
+        client.readBill(documentText),
+        budget,
+        `The on-device read did not finish in ${Math.round(budget / 1000)} seconds. The model may still be downloading on this machine. Nothing was uploaded.`,
+      );
+      if (cancelRef.current) return;
       if (read.source === 'IN_CLOUD') {
         setError(
           'The SDK returned a cloud read for a private document. That must not happen with ONLY_ON_DEVICE. The run is treated as failed, and the packet was not sent.',
@@ -168,14 +197,11 @@ export default function App() {
       }
       setExtraction(read.extraction);
       setReadSource(read.source);
+      setReadMs(read.elapsed_ms);
       setStage('review');
     } catch (e) {
       console.error('on-device read failed', e);
-      setError(
-        e instanceof Error
-          ? e.message
-          : 'The on-device read failed. The bill was not uploaded and no cloud fallback was attempted.',
-      );
+      setError(describeError(e));
       setStage('error');
     }
   }
@@ -212,6 +238,12 @@ export default function App() {
   function handleReset() {
     resetDocument('sample', SAMPLE_BILL_TEXT, null);
     setPasteText('');
+  }
+
+  function handleCancel() {
+    cancelRef.current = true;
+    setStage('idle');
+    setError('The read was stopped. Nothing was sent and nothing was uploaded.');
   }
 
   function handleProveFence() {
@@ -348,6 +380,8 @@ export default function App() {
           rulesReady={!!rules}
           synthetic={sourceMode === 'sample'}
           previewText={sourceMode === 'sample' ? null : documentText}
+          onCancel={handleCancel}
+          modelStatus={modelStatus}
         />
         {showReview ? (
           <ReviewPane
@@ -386,6 +420,9 @@ export default function App() {
         accepted={script?.verdict.accepted.length ?? 0}
         dropped={script?.verdict.dropped.length ?? 0}
         receiptId={receiptId}
+        readMs={readMs}
+        writeMs={writeMs}
+        glossaryVersion={glossaryVersion}
       />
 
       <footer className="footer">

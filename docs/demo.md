@@ -5,117 +5,116 @@
 The first thirty seconds have to say who it is for, what the problem is, and how Firebase AI Logic
 makes the private read possible. Judges may score from the video alone.
 
-### 0:00–0:20 — The bill and the paste
+The recording is `docs/video/callsheet-demo.mp4` (2:08, 1600×1200). It is a real screen recording
+of the hosted app, with a title card and an end card.
 
-Screen: the synthetic bill, full frame, no app chrome.
+### 0:00–0:08 — Title card
 
-Voice:
+> Paste any bill. It is read on your computer, checked in Rust, and never leaves the browser.
 
-> This is an explanation of benefits. People paste this into a chatbot. The name, the member ID,
-> the phone number, and the diagnoses go with it. A consumer chatbot is not a covered entity.
+### 0:08–0:20 — The bill
 
-Cut to a browser with a chat window and a pasted bill. Do not show a real bill. Use the same
-synthetic text.
+The desk is on screen. The synthetic bill is on the left, the boundary in the middle, the sheet on
+the right. Nothing has been read yet.
 
-### 0:20–0:35 — Who it is for
+> This is an explanation of benefits. People paste these into chatbots. The name, member ID, and
+> phone go with it.
 
-> Callsheet is for the ten minutes before the first phone call. Not a negotiation. Not a diagnosis.
-> The questions you should ask the billing office.
+### 0:20–0:25 — The source bar
 
-### 0:35–1:20 — The private read
+Point at the three tabs: Sample bill, Paste text, Upload PDF.
 
-Screen: the Callsheet desk. Click **Read it on this computer**.
+> Or your own. Paste it, or drop in a PDF. The text is read in this tab.
 
-Show the wait state. It is allowed to take twenty seconds.
+### 0:25–1:30 — The private read
 
-> This is Gemini Nano, through Firebase AI Logic, in ONLY_ON_DEVICE mode. If this computer cannot
-> run the model, the read throws. It does not upload the bill.
+Click **Read it on this computer**. The status line says the model is working. The wait is real:
+20 to 60 seconds on a warm machine, longer the first time.
 
-When the packet appears, point at the kept list.
+> This is Gemini Nano, through Firebase AI Logic, in ONLY_ON_DEVICE mode. If this browser cannot run
+> the model, the read refuses. It does not upload the bill.
 
-> The name, member ID, account number, phone, and address are still here. The middle column is the
-> exact packet the cloud is allowed to see.
+### 1:30–1:40 — The review
 
-### 1:20–1:55 — The check a judge can verify
+The middle column becomes the review: five line cards, each with editable description, billed,
+allowed, plan, and patient share. Below them the private fields, also editable.
 
-Point at the bill.
+> This is what the model read. Correct anything wrong before it is sealed. The packet is built from
+> these numbers, not from the original document.
 
-> The printed amount due is one hundred forty-six dollars. The lines add to one hundred ten. That is
-> a thirty-six dollar difference. Code 99213 is on two lines on the same date.
+### 1:40–1:50 — Seal and write
 
-> That check is Rust, compiled to WebAssembly, running in this page. The model wrote the read. It
-> cannot change the arithmetic.
+Click **Looks right — seal the packet**, then the write runs.
 
-### 1:55–2:25 — The cloud, and the fence
+> The packet drops the private fields at the boundary. The cloud sees codes, dates, and amounts.
 
-Click **Write the questions**.
+### 1:50–2:00 — The sheet
 
-> The cloud model sees only the packet. It writes the questions. Then the same Rust crate checks
-> every sentence.
+> The cloud wrote the questions. The Rust fence checked every sentence before it reached this
+> page. The phone number is filled in here, locally. It was never in the packet.
 
-Click **Prove the fence**. The planted `$999.00` and the patient name are dropped, with reasons.
+### 2:00–2:08 — Prove the fence
 
-> A number that was not in the packet does not reach the sheet. A patient name does not reach the
-> sheet. The sheet shows what was dropped and why.
+Click **Prove the fence**. Four planted sentences appear with their reasons:
 
-### 2:25–2:50 — The local fill-in
+| Planted | Reason shown |
+| --- | --- |
+| "You should also ask about the $999.00 facility fee on this bill." | amount $999.00 is not in the packet |
+| "Alex Rivera should call the number on the back of the card." | mentions a private field: patient name |
+| "Please call me back at 5550142280." | mentions a private field: provider phone |
+| "Code 99213 was also charged at $90.00." | amount $90.00 is not a charge for the code named here |
 
-Point at the phone number.
+> An amount that belongs to another code is dropped. A number that was never on the bill is
+> dropped. A name or a phone number is dropped. The model writes the prose. It does not get to
+> change the arithmetic.
 
-> The billing office number is filled in here, after the draft came back. It was never in the
-> packet. That is the whole split: private read, public writing, local finish.
+### 2:08 — End card
 
-### 2:50–3:00 — What is real
-
-> The sample is synthetic. The on-device read, the Rust checks, the fence, the packet hash, and the
-> receipt are real. The repo has the code, the tests, and the setup. Thank you.
-
-Do not claim negotiation, savings, fair-price benchmarks, charity-care eligibility, or medical
-advice. Those are not built.
+> A bill, turned into the call you should make. A private on-device read. A sealed packet. A check
+> the model cannot change.
 
 ## Recording checklist
 
-- Use desktop Chrome with the built-in model available. On this machine, the full Chrome stable
-  build is at `/tmp/opencode/chrome-stable/opt/google/chrome/chrome`, and the profile with the model
-  is `/home/kiter/.cache/callsheet-chrome-stable`.
-- Record at 1440×900 or 1920×1080. The desk is designed for a wide screen.
-- Capture the whole page, not a cropped panel. The bill, the boundary, and the sheet have to be on
-  screen together.
-- Record the first read live. Do not preload the extraction. If the model is slow, keep the wait in
-  the video; it is honest, and the status line explains it.
-- Record the fence proof live. Click **Prove the fence** after the sheet appears.
-- Keep the synthetic-demo pill visible in every shot.
-- Upload to YouTube as public, not unlisted. The rules say publicly visible.
-- Upload at least a day before the deadline; processing can take hours.
+- Use desktop Chrome with the built-in model available. On this machine the full Chrome stable build
+  is at `/home/kiter/.cache/chrome-stable/root/opt/google/chrome/chrome`, and the profile with the
+  model is `/home/kiter/.cache/callsheet-chrome-stable`.
+- Record at 1600×1200 so the whole desk fits without scrolling.
+- Record the live read. Do not preload the extraction. If the model is slow, keep the wait: the
+  status line explains it and honesty scores better than a cut.
+- Record the fence proof live.
+- Keep the synthetic pill visible in every shot.
+- Upload to YouTube as public. Processing can take hours.
 
 ## Judge test path
 
-1. Open the hosted URL in desktop Chrome 139+.
-2. The synthetic bill is on screen. The synthetic pill is visible.
-3. Click **Read it on this computer**. If the model is available, the packet appears. If it is not,
-   the app says so and does not upload the bill.
-4. Click **Write the questions**. If the Firebase configuration and App Check are live, the cloud
-   writes the sheet. If the cloud is unavailable, the template questions still work.
-5. Click **Prove the fence**. The planted `$999.00` and the patient name are dropped.
-6. Check the proof strip: packet hash, read source, write source, check ids, fence counts, receipt
-   id.
+1. Open https://callsheet-hybrid.web.app in desktop Chrome 139+.
+2. The sample bill is on screen, labelled synthetic.
+3. Press **Paste text** and paste any bill or EOB, or press **Upload PDF** for a PDF.
+4. Press **Read it on this computer**. If the model is available, the review step appears. If it is
+   not, the app says so and offers the deterministic parser instead.
+5. Edit anything wrong in the review. Press **Looks right — seal the packet**.
+6. The questions are written. Press **Prove the fence** to see the four planted attacks dropped.
+7. Press **Print** for a one-page sheet with the opener, the questions, a write-this-down block, and
+   the billing phone number.
+8. Check the proof strip: packet hash, `on_device`, `in_cloud`, the check ids, the fence counts, the
+   receipt id, the timing, and the glossary version.
 
-Judges are not required to test. That is why the video has to carry the same path.
+Judges are not required to test. That is why the video carries the same path.
 
 ## Reliability plan
 
-The on-device read depends on Chrome having the model. That is the one environmental dependency.
-The plan is:
+The on-device read depends on Chrome having the model. The app handles the three cases honestly:
 
-- Record the real read on the machine where the model works.
-- On a machine without the model, the app shows an honest unavailable state. It does not fake the
-  badge and does not upload the bill.
-- The hosted build can include a captured on-device trace for judges without the model, clearly
-  labeled as captured. It is not a live run, and the UI must say so.
-- The cloud step can still run on the captured packet, because the packet is real.
+| Case | What happens |
+| --- | --- |
+| Model ready | The read runs. The pill says "On-device model ready". |
+| Model downloading | The pill says so, the read waits up to five minutes, and the status line explains the wait. |
+| Model unavailable or no Prompt API | The read refuses immediately with a plain-language message and offers the deterministic parser. Nothing is uploaded. |
+| App Check attestation fails | The cloud write fails, the sheet falls back to the deterministic questions, and the sheet says why. |
+| Cloud unreachable | Same fallback. The sheet is never empty. |
 
-The Rust checks and the fence do not depend on the model. They work on the fixture and on the
-captured packet.
+A read that has not finished in 180 seconds is abandoned with an explanation, and there is a
+**Stop waiting** control.
 
 ## Test matrix
 
@@ -125,33 +124,23 @@ captured packet.
 | Total mismatch | `cargo test -p callsheet-rules flags_the_total_mismatch` | `$146.00`, `$110.00`, `$36.00` |
 | Private fields dropped | `cargo test -p callsheet-rules seal_drops_private_fields` | no name, member ID, phone in the packet |
 | Unknown amount dropped | `cargo test -p callsheet-rules drops_a_sentence_with_a_number_that_was_not_in_the_packet` | `$999.00` reason |
-| Patient name dropped | `cargo test -p callsheet-rules drops_a_sentence_that_names_the_patient` | private-field reason |
-| Unknown citation dropped | `cargo test -p callsheet-rules drops_an_unknown_citation` | `g-99999` reason |
-| Valid citation kept | `cargo test -p callsheet-rules accepts_a_valid_citation` | accepted |
-| Line count allowed | `cargo test -p callsheet-rules accepts_a_duplicate_question_with_a_line_count` | accepted |
-| Browser flow | `node scripts/e2e-local.mjs` | packet, sheet, phone, fence |
-| Production build | `pnpm --dir apps/web build` | `dist/` with the WASM asset |
-
-## Local setup for the demo machine
-
-```bash
-# Full Chrome stable, not Chrome for Testing, so the component updater can fetch the model.
-# The model is about 4 GB and is stored in the profile.
-google-chrome --user-data-dir=/home/kiter/.cache/callsheet-chrome-stable
-# Open chrome://components and confirm the on-device model is installed,
-# or just open the app and press Read.
-
-# App
-pnpm --dir apps/web dev
-```
-
-The app's local development mode uses the raw Chrome Prompt API and the template questions. The
-submission path uses Firebase AI Logic. The UI labels which one is active.
+| Wrong code dropped | `cargo test -p callsheet-rules drops_an_amount_that_belongs_to_a_different_code` | "not a charge for the code named here" |
+| Date not on the bill | `cargo test -p callsheet-rules drops_a_date_that_is_not_on_the_bill` | date reason |
+| Advice blocked | `cargo test -p callsheet-rules drops_imperative_advice` | advisory reason |
+| Phone reformatted | `cargo test -p callsheet-rules drops_a_reformatted_phone_number` | private-field reason |
+| Question allowed | `cargo test -p callsheet-rules allows_a_question_that_mentions_disputing` | kept |
+| String null citation | `cargo test -p callsheet-rules treats_the_string_null_as_no_citation` | kept, no citation |
+| Local parser | `pnpm --dir apps/web test` | 13 tests |
+| Whole flow | `node scripts/e2e-local.mjs` | packet, sheet, phone, fence |
+| No model at all | `node scripts/test-no-model.mjs` | refusal, then `local/parse` |
+| Mobile at 390px | `node scripts/test-mobile.mjs` | no horizontal overflow |
+| Extraction accuracy | `node scripts/measure-accuracy.mjs` | 40/40 fields |
 
 ## What not to do in the video
 
 - Do not show a real bill, a real name, or a real member ID.
 - Do not claim a specific dollar saving.
 - Do not call the sheet legal, medical, or financial advice.
-- Do not hide the fact that the sample is synthetic.
-- Do not edit out the wait and then claim the read was instant.
+- Do not hide that the sample is synthetic.
+- Do not edit out the wait.
+- Do not present the deterministic parser as a model read. It is labelled `local/parse`.

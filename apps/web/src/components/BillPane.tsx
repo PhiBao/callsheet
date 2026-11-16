@@ -11,6 +11,8 @@ type Props = {
   rulesReady: boolean;
   synthetic: boolean;
   previewText?: string | null;
+  onCancel: () => void;
+  modelStatus: string;
 };
 
 export function BillPane({
@@ -23,6 +25,8 @@ export function BillPane({
   rulesReady,
   synthetic,
   previewText,
+  onCancel,
+  modelStatus,
 }: Props) {
   const flagged = new Set(
     checks.flatMap((c) => (c.id.startsWith('duplicate-') ? c.line_numbers : [])),
@@ -96,7 +100,10 @@ export function BillPane({
                   className={flagged.has(line.line) ? 'bill-row--flag' : undefined}
                 >
                   <td>{line.line}</td>
-                  <td>{line.code}</td>
+                  <td>
+                    {line.code}
+                    {flagged.has(line.line) && <span className="row-flag">Duplicate</span>}
+                  </td>
                   <td>{line.description}</td>
                   <td>{formatMoney(line.billed_cents)}</td>
                   <td>{formatMoney(line.plan_paid_cents)}</td>
@@ -136,7 +143,9 @@ export function BillPane({
         ) : busy ? (
           <>
             <span className="status-dot" />
-            Reading on this computer. The first prompt can take twenty seconds.
+            {modelStatus === 'downloadable' || modelStatus === 'downloading'
+              ? 'The on-device model is downloading on this machine. The first read can take a few minutes.'
+              : 'Reading on this computer. The first prompt can take twenty seconds.'}
           </>
         ) : captured ? (
           <>
@@ -174,6 +183,16 @@ export function BillPane({
                 ? 'Reading…'
                 : 'Read it on this computer'}
       </button>
+
+      {busy && (
+        <button
+          className="button button--ghost button--wide"
+          onClick={onCancel}
+          style={{ marginTop: 8 }}
+        >
+          Stop waiting
+        </button>
+      )}
     </section>
   );
 }

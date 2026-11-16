@@ -13,8 +13,8 @@ const browser = await chromium.launch({
   args: ['--no-sandbox', '--disable-dev-shm-usage'],
 });
 const ctx = await browser.newContext({
-  viewport: { width: 1440, height: 900 },
-  recordVideo: { dir, size: { width: 1440, height: 900 } },
+  viewport: { width: 1600, height: 1200 },
+  recordVideo: { dir, size: { width: 1600, height: 1200 } },
 });
 
 for (const [name, ms] of [

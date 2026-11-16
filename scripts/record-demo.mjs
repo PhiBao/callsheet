@@ -17,10 +17,10 @@ const ctx = await chromium.launchPersistentContext(PROFILE, {
   executablePath: CHROME,
   headless: true,
   args: flags,
-  recordVideo: { dir: OUT, size: { width: 1440, height: 900 } },
+  recordVideo: { dir: OUT, size: { width: 1600, height: 1200 } },
 });
 const page = ctx.pages()[0] || (await ctx.newPage());
-await page.setViewportSize({ width: 1440, height: 900 });
+await page.setViewportSize({ width: 1600, height: 1200 });
 const video = page.video();
 
 await page.goto(BASE, { waitUntil: 'domcontentloaded' });
@@ -30,11 +30,20 @@ await page.waitForTimeout(3500);
 console.log('title shown');
 
 await read.click();
-await page.waitForSelector('text=Write the questions', { timeout: 180000 });
+try {
+  await page.waitForSelector('text=Check the read', { timeout: 300000 });
+} catch (e) {
+  console.log('read did not reach review');
+  console.log('error:', await page.locator('.error').first().innerText().catch(() => '(none)'));
+  console.log((await page.locator('body').innerText()).slice(0, 600));
+  await page.screenshot({ path: '/tmp/opencode/video/fail-read.png', fullPage: true });
+  await ctx.close();
+  process.exit(1);
+}
 await page.waitForTimeout(3500);
-console.log('packet shown');
+console.log('review shown');
 
-await page.getByRole('button', { name: /Write the questions/i }).click();
+await page.getByRole('button', { name: /seal the packet/i }).click();
 await page.waitForSelector('text=Prove the fence', { timeout: 240000 });
 await page.waitForTimeout(5000);
 console.log('sheet shown');

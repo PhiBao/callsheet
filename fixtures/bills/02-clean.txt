@@ -1,0 +1,18 @@
+LAKESIDE FAMILY PRACTICE
+88 Harbor Street, Fairhaven
+Billing office: (555) 019-3301
+
+Patient: Priya Raman
+Member ID: BBB 2233 8891
+Account number: 300-118-224
+Claim number: CLM-2026-02-3312
+Date of service: 2026-02-11
+
+Line  Date        Code    Description                 Billed      Allowed     Plan paid   You owe
+1     2026-02-11  99214   Office visit, new patient   $240.00     $170.00     $136.00     $34.00
+2     2026-02-11  87880   Strep test                   $45.00      $32.00      $25.00      $7.00
+
+Total billed:                          $285.00
+Total patient responsibility:          $41.00
+
+Amount due from patient:               $41.00

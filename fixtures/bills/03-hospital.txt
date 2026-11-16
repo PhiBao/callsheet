@@ -1,0 +1,17 @@
+NORTH HARBOR HOSPITAL
+Financial Services · 4001 Shoreline Avenue
+Questions about this bill: (555) 019-4400
+
+Account holder: Marcus Feld
+Policy number: ZZ 5510 9930
+Invoice number: INV-2026-04-77
+Statement date: 2026-04-19
+
+Service            Date        Billed     Allowed    Insurance    You
+99213              2026-04-02  $180.00    $128.00    $102.00      $26.00
+85025              2026-04-02  $90.00     $62.00     $49.00       $13.00
+71046              2026-04-03  $200.00    $140.00    $112.00      $28.00
+
+Total billed        $470.00
+Total insurance     $263.00
+You owe             $67.00

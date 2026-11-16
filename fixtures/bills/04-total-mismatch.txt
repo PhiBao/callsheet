@@ -1,0 +1,20 @@
+SUMMIT URGENT CARE
+14 Grand Avenue, Riverton
+Billing office: (555) 019-7702
+
+Patient: Elena Ruiz
+Member ID: KLM 7742 0091
+Account number: 118-902-334
+Claim number: CLM-2026-05-4419
+Date of service: 2026-05-06
+
+Line  Date        Code    Description              Billed      Allowed     Plan paid   You owe
+1     2026-05-06  99213   Office visit, established  $180.00     $128.00     $102.00     $26.00
+2     2026-05-06  85025   Complete blood count      $90.00      $62.00      $49.00      $13.00
+
+Total billed:                          $270.00
+Total allowed:                         $190.00
+Total plan paid:                       $151.00
+Total patient responsibility:          $39.00
+
+Amount due from patient:               $78.00

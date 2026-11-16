@@ -29,6 +29,27 @@ export async function readAndSeal(
   return { read, packet, packetHash };
 }
 
+/**
+ * A read must never hang the page. The model can take a long time on the
+ * first run while it downloads, and on a machine without the built-in AI
+ * features it never finishes at all.
+ */
+export function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(message)), ms);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timer);
+        reject(error);
+      },
+    );
+  });
+}
+
 export type ScriptRun = {
   draft: CloudDraft;
   verdict: Verdict;

@@ -10,6 +10,18 @@ import type {
 
 export type ClientKind = 'firebase' | 'local';
 
+export type RemoteSettings = {
+  cloudModel: string;
+  writeEnabled: boolean;
+  glossaryVersion: string;
+};
+
+export const DEFAULT_REMOTE: RemoteSettings = {
+  cloudModel: 'gemini-3.5-flash-lite',
+  writeEnabled: true,
+  glossaryVersion: '',
+};
+
 export type ReceiptInput = {
   packetHash: string;
   readSource: InferenceSource;
@@ -23,6 +35,7 @@ export type ReceiptInput = {
 export type Client = {
   kind: ClientKind;
   label: string;
+  settings(): Promise<RemoteSettings>;
   readBill(documentText: string): Promise<ReadResult>;
   writeScript(packet: SealedPacket): Promise<ScriptResult>;
   recordReceipt(input: ReceiptInput): Promise<string | null>;
@@ -146,29 +159,46 @@ function recoverPhone(text: string): string {
  * lines; a labelled amount on one line is a parsing job, not a judgement call.
  * These values stay local and are part of the packet.
  */
-function recoverMoney(text: string, label: RegExp): number | null {
-  const line = text.split('\n').find((l) => label.test(l));
-  if (!line) return null;
-  const match = line.match(/\$?\s*([\d,]+\.\d{2})/);
-  if (!match) return null;
-  const value = Number(match[1].replace(/,/g, ''));
-  return Number.isFinite(value) ? Math.round(value * 100) : null;
+function recoverMoney(text: string, labels: RegExp[]): number | null {
+  for (const label of labels) {
+    const line = text.split('\n').find((l) => label.test(l));
+    if (!line) continue;
+    const match = line.match(/\$?\s*([\d,]+\.\d{2})/);
+    if (!match) continue;
+    const value = Number(match[1].replace(/,/g, ''));
+    if (Number.isFinite(value)) return Math.round(value * 100);
+  }
+  return null;
 }
+
+/** Labels for the amount the patient actually owes, most specific first. */
+const AMOUNT_DUE_LABELS = [
+  /amount due from patient/i,
+  /amount due/i,
+  /total due/i,
+  /balance due/i,
+  /you owe/i,
+  /amount you owe/i,
+  /patient owes/i,
+];
+
+const TOTAL_BILLED_LABELS = [/total billed/i, /total charges/i, /total amount billed/i];
+const TOTAL_PATIENT_LABELS = [/total patient responsibility/i, /total you owe/i];
 
 function repairExtraction(extraction: Extraction, text: string): Extraction {
   if (!extraction.private.provider_phone) {
     extraction.private.provider_phone = recoverPhone(text);
   }
   if (extraction.printed_amount_due_cents === 0) {
-    const value = recoverMoney(text, /amount due from patient/i);
+    const value = recoverMoney(text, AMOUNT_DUE_LABELS);
     if (value != null) extraction.printed_amount_due_cents = value;
   }
   if (!extraction.printed_total_billed_cents) {
-    const value = recoverMoney(text, /total billed/i);
+    const value = recoverMoney(text, TOTAL_BILLED_LABELS);
     if (value != null) extraction.printed_total_billed_cents = value;
   }
   if (!extraction.printed_total_patient_cents) {
-    const value = recoverMoney(text, /total patient responsibility/i);
+    const value = recoverMoney(text, TOTAL_PATIENT_LABELS);
     if (value != null) extraction.printed_total_patient_cents = value;
   }
   return extraction;
@@ -210,6 +240,10 @@ export function templateDraft(packet: SealedPacket): CloudDraft {
 class LocalClient implements Client {
   kind: ClientKind = 'local';
   label = 'Local development · raw Chrome Prompt API';
+
+  async settings(): Promise<RemoteSettings> {
+    return DEFAULT_REMOTE;
+  }
 
   async readBill(documentText: string): Promise<ReadResult> {
     const started = performance.now();
@@ -283,6 +317,36 @@ class FirebaseClient implements Client {
 
   constructor(private config: Record<string, string>) {}
 
+  private remoteSettings: Promise<RemoteSettings> | null = null;
+
+  /**
+   * Remote Config holds the cloud model, the glossary version, and a kill
+   * switch for the writing step. A failure here must never break the product,
+   * so the defaults stand.
+   */
+  async settings(): Promise<RemoteSettings> {
+    if (!this.remoteSettings) {
+      this.remoteSettings = (async () => {
+        try {
+          const { getRemoteConfig, fetchAndActivate, getString } = await import(
+            'firebase/remote-config'
+          );
+          const { app } = await this.init();
+          const rc = getRemoteConfig(app);
+          await fetchAndActivate(rc);
+          return {
+            cloudModel: getString(rc, 'cloud_model') || DEFAULT_REMOTE.cloudModel,
+            writeEnabled: getString(rc, 'write_enabled') !== 'false',
+            glossaryVersion: getString(rc, 'glossary_version') || '',
+          };
+        } catch {
+          return DEFAULT_REMOTE;
+        }
+      })();
+    }
+    return this.remoteSettings;
+  }
+
   private async init() {
     if (this.ready) return this.ready;
     this.ready = (async () => {
@@ -297,10 +361,15 @@ class FirebaseClient implements Client {
 
       const app = initializeApp(this.config);
       const siteKey = import.meta.env.VITE_APP_CHECK_SITE_KEY as string | undefined;
+      const debugToken = import.meta.env.VITE_APP_CHECK_DEBUG_TOKEN as string | undefined;
+      if (debugToken) {
+        await seedDebugToken(debugToken);
+        (self as any).FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+      }
       if (siteKey) {
         appCheckMod.initializeAppCheck(app, {
           provider: new appCheckMod.ReCaptchaEnterpriseProvider(siteKey),
-          isTokenAutoRefreshEnabled: true,
+          isTokenAutoRefreshEnabled: !debugToken,
         });
       } else if (import.meta.env.DEV) {
         // Local only. A debug token never goes to the hosted build.
@@ -314,7 +383,8 @@ class FirebaseClient implements Client {
       try {
         await authMod.signInAnonymously(authMod.getAuth(app));
       } catch {
-        // Receipts need auth; reading does not. Do not block the product.
+        // The receipt is public and append-only, so an account is not needed.
+        // Identity Platform is not enabled on this project.
       }
 
       const ai = aiMod.getAI(app, { backend: new aiMod.GoogleAIBackend() });
@@ -355,6 +425,15 @@ class FirebaseClient implements Client {
 
   async writeScript(packet: SealedPacket): Promise<ScriptResult> {
     const started = performance.now();
+    const settings = await this.settings();
+    if (!settings.writeEnabled) {
+      return {
+        draft: templateDraft(packet),
+        source: 'LOCAL_CLOUD',
+        elapsed_ms: Math.round(performance.now() - started),
+        note: 'Cloud writing is off in Remote Config. The deterministic questions were used.',
+      };
+    }
     const { ai, InferenceMode, getGenerativeModel, Schema } = await this.init();
     const sentenceSchema = Schema.object({
       properties: {
@@ -370,7 +449,7 @@ class FirebaseClient implements Client {
     const model = getGenerativeModel(ai, {
       mode: InferenceMode.ONLY_IN_CLOUD,
       inCloudParams: {
-        model: 'gemini-3.5-flash-lite',
+        model: settings.cloudModel,
         generationConfig: {
           responseMimeType: 'application/json',
           responseSchema: schema,
@@ -403,8 +482,38 @@ class FirebaseClient implements Client {
   }
 }
 
-function firebaseConfig(): Record<string, string> | null {
-  const raw = import.meta.env.VITE_FIREBASE_CONFIG as string | undefined;
+/**
+ * Put a registered App Check debug token where the SDK looks for it. Used only
+ * when a debug token is supplied at build time. The rules allow debug tokens
+ * in submissions; the shipped build does not carry one.
+ */
+async function seedDebugToken(token: string): Promise<void> {
+  await new Promise<void>((resolve) => {
+    try {
+      const request = indexedDB.open('firebase-app-check-database', 1);
+      request.onupgradeneeded = () => {
+        if (!request.result.objectStoreNames.contains('firebase-app-check-store')) {
+          request.result.createObjectStore('firebase-app-check-store');
+        }
+      };
+      request.onsuccess = () => {
+        const db = request.result;
+        const tx = db.transaction('firebase-app-check-store', 'readwrite');
+        tx.objectStore('firebase-app-check-store').put({
+          compositeKey: 'debug-token',
+          value: token,
+        });
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => resolve();
+      };
+      request.onerror = () => resolve();
+    } catch {
+      resolve();
+    }
+  });
+}
+
+function firebaseConfig(): Record<string, string> | null {  const raw = import.meta.env.VITE_FIREBASE_CONFIG as string | undefined;
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw) as Record<string, string>;
