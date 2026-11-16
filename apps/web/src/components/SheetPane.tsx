@@ -7,9 +7,10 @@ type Props = {
   busy: boolean;
   onProveFence: () => void;
   fenceProved: boolean;
+  onUseTemplate: () => void;
 };
 
-export function SheetPane({ verdict, phone, note, busy, onProveFence, fenceProved }: Props) {
+export function SheetPane({ verdict, phone, note, busy, onProveFence, fenceProved, onUseTemplate }: Props) {
   return (
     <section className="desk-col desk-col--sheet" aria-labelledby="sheet-heading">
       <div className="sheet">
@@ -59,8 +60,17 @@ export function SheetPane({ verdict, phone, note, busy, onProveFence, fenceProve
               </ol>
             ) : (
               <div className="error">
-                Every sentence was dropped by the fence. The template questions on the bill screen
-                are still safe to use.
+                <div>
+                  Every sentence was dropped by the fence. The deterministic questions built from
+                  the packet are still safe to use.
+                </div>
+                <button
+                  className="button button--ghost"
+                  onClick={onUseTemplate}
+                  style={{ marginTop: 10, padding: '6px 10px', fontSize: 11 }}
+                >
+                  Use the deterministic questions
+                </button>
               </div>
             )}
 

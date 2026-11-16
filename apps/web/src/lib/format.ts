@@ -35,5 +35,5 @@ export function sum(lines: { patient_cents: number }[]): number {
 }
 
 export function titleCase(s: string): string {
-  return s.replace(/\w\S*/g, (w) => w[0].toUpperCase() + w.slice(1));
+  return s.replace(/\w\S*/g, (w) => w[0].toUpperCase() + w.slice(1).toLowerCase());
 }

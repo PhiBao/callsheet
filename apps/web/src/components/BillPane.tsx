@@ -9,6 +9,8 @@ type Props = {
   done: boolean;
   captured: boolean;
   rulesReady: boolean;
+  synthetic: boolean;
+  previewText?: string | null;
 };
 
 export function BillPane({
@@ -19,6 +21,8 @@ export function BillPane({
   done,
   captured,
   rulesReady,
+  synthetic,
+  previewText,
 }: Props) {
   const flagged = new Set(
     checks.flatMap((c) => (c.id.startsWith('duplicate-') ? c.line_numbers : [])),
@@ -35,12 +39,19 @@ export function BillPane({
         </h2>
       </div>
 
-      <article className="bill" aria-label="Synthetic explanation of benefits">
+      {previewText && !done ? (
+        <pre className="document-preview">{previewText}</pre>
+      ) : (
+        <article className="bill" aria-label="Synthetic explanation of benefits">
         <header className="bill-head">
           <div className="bill-provider">{extraction.private.provider_name || 'Provider'}</div>
           <div className="bill-address">{extraction.private.service_address}</div>
           <div className="bill-address">Billing office {extraction.private.provider_phone}</div>
-          <div className="bill-synthetic">Synthetic demonstration · not a real patient</div>
+          <div className="bill-synthetic">
+            {synthetic
+              ? 'Synthetic demonstration · not a real patient'
+              : 'Read in this tab · nothing uploaded'}
+          </div>
         </header>
 
         <dl className="bill-meta">
@@ -112,7 +123,8 @@ export function BillPane({
           Remit to {extraction.private.provider_name}, PO Box 4410, Springfield. Include the account
           number.
         </div>
-      </article>
+        </article>
+      )}
 
       <div className="status status--busy" aria-live="polite" style={{ marginTop: 16 }}>
         {!rulesReady ? (

@@ -5,10 +5,17 @@ type Props = {
   clientLabel: string;
   stage: string;
   captured: boolean;
+  modelStatus: string;
   onReset: () => void;
 };
 
-export function Masthead({ clientKind, clientLabel, stage, captured, onReset }: Props) {
+export function Masthead({ clientKind, clientLabel, stage, captured, modelStatus, onReset }: Props) {
+  const modelPill =
+    modelStatus === 'available'
+      ? { label: 'On-device model ready', cls: 'pill--live' }
+      : modelStatus === 'not-exposed'
+        ? { label: 'No on-device model in this browser', cls: 'pill--local' }
+        : { label: `On-device model · ${modelStatus}`, cls: 'pill--local' };
   return (
     <header className="masthead">
       <div className="brand">
@@ -31,6 +38,7 @@ export function Masthead({ clientKind, clientLabel, stage, captured, onReset }: 
 
       <div className="masthead-meta">
         <span className="pill pill--synthetic">Synthetic demo</span>
+        <span className={`pill ${modelPill.cls}`}>{modelPill.label}</span>
         {captured && <span className="pill pill--local">Captured trace</span>}
         <span className={`pill ${clientKind === 'firebase' ? 'pill--live' : 'pill--local'}`}>
           {clientLabel}

@@ -80,7 +80,8 @@ export type InferenceSource =
   | 'IN_CLOUD'
   | 'LOCAL_ON_DEVICE'
   | 'LOCAL_CLOUD'
-  | 'CAPTURED_ON_DEVICE';
+  | 'CAPTURED_ON_DEVICE'
+  | 'FIXTURE_PARSE';
 
 export type ReadResult = {
   extraction: Extraction;

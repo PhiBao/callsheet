@@ -4,14 +4,19 @@ import { BillPane } from './components/BillPane';
 import { SlotPane } from './components/SlotPane';
 import { SheetPane } from './components/SheetPane';
 import { Receipt } from './components/Receipt';
-import { getClient } from './lib/ai';
+import { ReviewPane } from './components/ReviewPane';
+import { SourceBar } from './components/SourceBar';
+import { getClient, templateDraft } from './lib/ai';
 import { GLOSS_REFS, GLOSSARY_VERSION } from './lib/glossary';
 import { loadRules, sha256Hex, type Rules } from './lib/rules';
-import { readAndSeal, writeAndVerify, type ScriptRun } from './lib/pipeline';
+import { writeAndVerify, type ScriptRun } from './lib/pipeline';
 import { SAMPLE_BILL_TEXT, SAMPLE_EXTRACTION, CAPTURED_READ } from './lib/sample';
+import { parseEobText } from './lib/parse';
 import type { Extraction, SealedPacket } from './types';
 
 type Stage = 'idle' | 'reading' | 'review' | 'writing' | 'done' | 'error';
+type SourceMode = 'sample' | 'paste' | 'pdf';
+type ModelStatus = 'unknown' | 'available' | 'downloadable' | 'downloading' | 'unavailable' | 'not-exposed';
 
 export default function App() {
   const client = useMemo(() => getClient(), []);
@@ -21,12 +26,20 @@ export default function App() {
   const [extraction, setExtraction] = useState<Extraction>(SAMPLE_EXTRACTION);
   const [packet, setPacket] = useState<SealedPacket | null>(null);
   const [packetHash, setPacketHash] = useState<string | null>(null);
-  const [readSource, setReadSource] = useState<import('./types').InferenceSource | null>(null);
+  const [readSource, setReadSource] = useState<
+    import('./types').InferenceSource | null
+  >(null);
   const [script, setScript] = useState<ScriptRun | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [receiptId, setReceiptId] = useState<string | null>(null);
   const [fenceProved, setFenceProved] = useState(false);
   const [captured, setCaptured] = useState(false);
+  const [modelStatus, setModelStatus] = useState<ModelStatus>('unknown');
+
+  const [sourceMode, setSourceMode] = useState<SourceMode>('sample');
+  const [pasteText, setPasteText] = useState('');
+  const [fileName, setFileName] = useState<string | null>(null);
+  const [documentText, setDocumentText] = useState<string>(SAMPLE_BILL_TEXT);
 
   useEffect(() => {
     let live = true;
@@ -42,73 +55,21 @@ export default function App() {
     };
   }, []);
 
-  async function handleRead() {
-    if (!rules) {
-      setError('The rules engine is still loading. Try again in a moment.');
+  useEffect(() => {
+    const lm = window.LanguageModel;
+    if (!lm) {
+      setModelStatus('not-exposed');
       return;
     }
-    setStage('reading');
-    setError(null);
-    setScript(null);
-    setReceiptId(null);
-    try {
-      const run = await readAndSeal(client, rules, SAMPLE_BILL_TEXT, GLOSS_REFS);
-      if (run.read.source === 'IN_CLOUD') {
-        setError(
-          'The SDK returned a cloud read for a private document. That must not happen with ONLY_ON_DEVICE. The run is treated as failed, and the packet was not sent.',
-        );
-        setStage('error');
-        return;
-      }
-      setExtraction(run.read.extraction);
-      setPacket(run.packet);
-      setPacketHash(run.packetHash);
-      setReadSource(run.read.source);
-      setCaptured(false);
-      setStage('review');
-    } catch (e) {
-      console.error('on-device read failed', e);
-      setError(
-        e instanceof Error
-          ? e.message
-          : 'The on-device read failed. The bill was not uploaded and no cloud fallback was attempted.',
-      );
-      setStage('error');
-    }
-  }
+    lm.availability()
+      .then((status) => setModelStatus(status as ModelStatus))
+      .catch(() => setModelStatus('unavailable'));
+  }, []);
 
-  async function handleWrite() {
-    if (!rules || !packet) return;
-    setStage('writing');
-    setError(null);
-    try {
-      const run = await writeAndVerify(client, rules, packet, extraction);
-      setScript({ ...run, note: captured ? CAPTURED_READ.note : run.note });
-      setStage('done');
-      if (packetHash) {
-        const id = await client.recordReceipt({
-          packetHash,
-          readSource: readSource ?? 'ON_DEVICE',
-          scriptSource: run.source,
-          checkIds: packet.checks.map((c) => c.id),
-          accepted: run.verdict.accepted.length,
-          dropped: run.verdict.dropped.length,
-          glossaryVersion: GLOSSARY_VERSION,
-        });
-        setReceiptId(id);
-      }
-    } catch (e) {
-      console.error('[callsheet] write failed', e);
-      setError(
-        e instanceof Error
-          ? e.message
-          : 'The writing step failed. The packet was sealed, but the cloud did not answer.',
-      );
-      setStage('review');
-    }
-  }
-
-  function handleReset() {
+  function resetDocument(nextMode: SourceMode, text: string, name: string | null) {
+    setSourceMode(nextMode);
+    setDocumentText(text);
+    setFileName(name);
     setStage('idle');
     setExtraction(SAMPLE_EXTRACTION);
     setPacket(null);
@@ -121,7 +82,120 @@ export default function App() {
     setCaptured(false);
   }
 
-  async function handleCapturedRead() {
+  function handleSample() {
+    resetDocument('sample', SAMPLE_BILL_TEXT, null);
+  }
+
+  function handlePasteTab() {
+    resetDocument('paste', pasteText, null);
+  }
+
+  function handlePasteChange(value: string) {
+    setPasteText(value);
+    if (sourceMode === 'paste') {
+      setDocumentText(value);
+      setStage('idle');
+      setExtraction(SAMPLE_EXTRACTION);
+      setPacket(null);
+      setPacketHash(null);
+      setScript(null);
+      setError(null);
+    }
+  }
+
+  function handlePdf(text: string, name: string) {
+    resetDocument('pdf', text, name);
+  }
+
+  async function sealAndWrite(nextExtraction: Extraction) {
+    if (!rules) return;
+    const sealed = rules.seal(nextExtraction, GLOSS_REFS);
+    const hash = await sha256Hex(JSON.stringify(sealed));
+    setPacket(sealed);
+    setPacketHash(hash);
+    setStage('writing');
+    setError(null);
+    try {
+      const run = await writeAndVerify(client, rules, sealed, nextExtraction);
+      setScript({ ...run, note: captured ? CAPTURED_READ.note : run.note });
+      setStage('done');
+      const id = await client.recordReceipt({
+        packetHash: hash,
+        readSource: readSource ?? 'ON_DEVICE',
+        scriptSource: run.source,
+        checkIds: sealed.checks.map((c) => c.id),
+        accepted: run.verdict.accepted.length,
+        dropped: run.verdict.dropped.length,
+        glossaryVersion: GLOSSARY_VERSION,
+      });
+      setReceiptId(id);
+    } catch (e) {
+      console.error('[callsheet] write failed', e);
+      setError(
+        e instanceof Error
+          ? e.message
+          : 'The writing step failed. The packet was sealed, but the cloud did not answer.',
+      );
+      setStage('review');
+    }
+  }
+
+  async function handleRead() {
+    if (!rules) {
+      setError('The rules engine is still loading. Try again in a moment.');
+      return;
+    }
+    if (!documentText.trim()) {
+      setError('Paste a bill first, or use the sample bill.');
+      return;
+    }
+    setStage('reading');
+    setError(null);
+    setScript(null);
+    setReceiptId(null);
+    setPacket(null);
+    setPacketHash(null);
+    setCaptured(false);
+    try {
+      const read = await client.readBill(documentText);
+      if (read.source === 'IN_CLOUD') {
+        setError(
+          'The SDK returned a cloud read for a private document. That must not happen with ONLY_ON_DEVICE. The run is treated as failed, and the packet was not sent.',
+        );
+        setStage('error');
+        return;
+      }
+      setExtraction(read.extraction);
+      setReadSource(read.source);
+      setStage('review');
+    } catch (e) {
+      console.error('on-device read failed', e);
+      setError(
+        e instanceof Error
+          ? e.message
+          : 'The on-device read failed. The bill was not uploaded and no cloud fallback was attempted.',
+      );
+      setStage('error');
+    }
+  }
+
+  function handleParseFallback() {
+    if (!rules) return;
+    const parsed = parseEobText(documentText);
+    if (parsed.lines.length === 0) {
+      setError(
+        'The local parser could not read that text. Paste a bill with a line table, or use the sample.',
+      );
+      return;
+    }
+    setExtraction(parsed);
+    setReadSource('FIXTURE_PARSE');
+    setCaptured(false);
+    setError(null);
+    void sealAndWrite(parsed);
+  }
+
+  function handleCapturedRead() {
     if (!rules) return;
     setStage('reading');
     setError(null);
@@ -129,13 +203,14 @@ export default function App() {
     setReceiptId(null);
     setFenceProved(false);
     setExtraction(CAPTURED_READ.extraction);
-    const sealed = rules.seal(CAPTURED_READ.extraction, GLOSS_REFS);
-    const hash = await sha256Hex(JSON.stringify(sealed));
-    setPacket(sealed);
-    setPacketHash(hash);
     setReadSource('CAPTURED_ON_DEVICE');
     setCaptured(true);
     setStage('review');
+  }
+
+  function handleReset() {
+    resetDocument('sample', SAMPLE_BILL_TEXT, null);
+    setPasteText('');
   }
 
   function handleProveFence() {
@@ -158,8 +233,23 @@ export default function App() {
     setFenceProved(true);
   }
 
+  function handleUseTemplate() {
+    if (!rules || !packet) return;
+    const draft = templateDraft(packet);
+    const verdict = rules.verify(packet, extraction, draft);
+    setScript({
+      draft,
+      verdict,
+      source: 'LOCAL_CLOUD',
+      elapsed_ms: 0,
+      note: 'Deterministic questions built from the packet. No cloud call.',
+    });
+    setStage('done');
+  }
+
   const checks = packet?.checks ?? [];
   const phone = extraction.private.provider_phone || SAMPLE_EXTRACTION.private.provider_phone;
+  const showReview = stage === 'review';
 
   return (
     <div className="app">
@@ -168,6 +258,7 @@ export default function App() {
         clientLabel={client.label}
         stage={stage}
         captured={captured}
+        modelStatus={modelStatus}
         onReset={handleReset}
       />
 
@@ -180,8 +271,19 @@ export default function App() {
         </p>
       </section>
 
+      <SourceBar
+        mode={sourceMode}
+        onSample={handleSample}
+        onPaste={handlePasteTab}
+        onPdf={handlePdf}
+        pasteText={pasteText}
+        onPasteChange={handlePasteChange}
+        fileName={fileName}
+        disabled={stage === 'reading' || stage === 'writing'}
+      />
+
       {rulesError && (
-        <div className="error" style={{ marginBottom: 16 }}>
+        <div className="error" style={{ marginTop: 14 }}>
           The rules engine did not load: {rulesError}. Run{' '}
           <code>wasm-pack build crates/callsheet-rules --target web --out-dir ../../apps/web/src/wasm</code>{' '}
           and reload.
@@ -189,23 +291,33 @@ export default function App() {
       )}
 
       {error && (
-        <div className="error" style={{ marginBottom: 16 }} role="alert">
+        <div className="error" style={{ marginTop: 14 }} role="alert">
           <div>{error}</div>
-          <button
-            className="button button--ghost"
-            onClick={handleCapturedRead}
-            disabled={!rules}
-            style={{ marginTop: 10, padding: '6px 10px', fontSize: 11 }}
-          >
-            Use the captured on-device read (not a live run)
-          </button>
+          <div className="error-actions">
+            <button
+              className="button button--ghost"
+              onClick={handleParseFallback}
+              disabled={!rules}
+              style={{ padding: '6px 10px', fontSize: 11 }}
+            >
+              Re-read with the local parser
+            </button>
+            <button
+              className="button button--ghost"
+              onClick={handleCapturedRead}
+              disabled={!rules}
+              style={{ padding: '6px 10px', fontSize: 11 }}
+            >
+              Use the captured on-device read
+            </button>
+          </div>
         </div>
       )}
 
       {client.kind === 'local' && (
         <div
           className="status"
-          style={{ marginBottom: 14, borderTop: '1px solid var(--rule)', paddingTop: 12 }}
+          style={{ marginTop: 12, borderTop: '1px solid var(--rule)', paddingTop: 12 }}
         >
           <span className="status-dot" style={{ background: 'var(--ink-faint)' }} />
           Local development mode: raw Chrome Prompt API for the read, template questions for the
@@ -222,15 +334,27 @@ export default function App() {
           done={stage !== 'idle' && stage !== 'error'}
           captured={captured}
           rulesReady={!!rules}
+          synthetic={sourceMode === 'sample'}
+          previewText={sourceMode === 'sample' ? null : documentText}
         />
-        <SlotPane
-          packet={packet}
-          packetHash={packetHash}
-          extraction={extraction}
-          onWrite={handleWrite}
-          busy={stage === 'writing'}
-          done={stage === 'done'}
-        />
+        {showReview ? (
+          <ReviewPane
+            extraction={extraction}
+            checks={checks}
+            onSeal={() => void sealAndWrite(extraction)}
+            onParse={handleParseFallback}
+            onEdit={setExtraction}
+          />
+        ) : (
+          <SlotPane
+            packet={packet}
+            packetHash={packetHash}
+            extraction={extraction}
+            onWrite={() => packet && void sealAndWrite(extraction)}
+            busy={stage === 'writing'}
+            done={stage === 'done'}
+          />
+        )}
         <SheetPane
           verdict={script?.verdict ?? null}
           phone={phone}
@@ -238,6 +362,7 @@ export default function App() {
           busy={stage === 'writing'}
           onProveFence={handleProveFence}
           fenceProved={fenceProved}
+          onUseTemplate={handleUseTemplate}
         />
       </main>
 

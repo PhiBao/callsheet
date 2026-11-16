@@ -164,14 +164,26 @@ pub fn verify_draft(
             continue;
         }
 
-        if let Some(citation) = &sentence.citation {
-            if !citation.is_empty() && !allowed_cites.contains(citation.as_str()) {
-                dropped.push(Dropped {
-                    text,
-                    reason: format!("unknown citation {citation}"),
-                });
-                continue;
-            }
+        let citation = sentence.citation.as_deref().and_then(|value| {
+          let trimmed = value.trim();
+          if trimmed.is_empty()
+            || trimmed.eq_ignore_ascii_case("null")
+            || trimmed.eq_ignore_ascii_case("none")
+          {
+            None
+          } else {
+            Some(trimmed)
+          }
+        });
+
+        if let Some(citation) = citation {
+          if !allowed_cites.contains(citation) {
+            dropped.push(Dropped {
+              text,
+              reason: format!("unknown citation {citation}"),
+            });
+            continue;
+          }
         }
 
         let spans = date_spans(&text);
@@ -239,7 +251,7 @@ pub fn verify_draft(
         } else {
             accepted.push(DraftSentence {
                 text,
-                citation: sentence.citation.clone(),
+                citation: citation.map(|value| value.to_string()),
             });
         }
     }
@@ -339,6 +351,19 @@ mod tests {
             printed_total_patient_cents: None,
             claim_number: None,
         }
+    }
+
+    #[test]
+    fn treats_the_string_null_as_no_citation() {
+        let draft = CloudDraft {
+            sentences: vec![DraftSentence {
+                text: "The printed amount due is $146.00 and the lines add to $110.00.".into(),
+                citation: Some("null".into()),
+            }],
+        };
+        let verdict = verify_draft(&packet(), &extraction(), &draft);
+        assert!(verdict.ok, "dropped: {:?}", verdict.dropped);
+        assert!(verdict.accepted[0].citation.is_none());
     }
 
     #[test]

@@ -41,8 +41,9 @@ const SCRIPT_PROMPT = `You write short questions for a billing office.
 Use only the dollar amounts, codes, dates, and gloss ids in the packet below.
 Never mention the patient name, member id, account number, phone number, or address.
 Every sentence must be a question or a request that a person can read aloud on a phone call.
-If you explain a code, set citation to that code's gloss id. Otherwise set citation to null.
-Return JSON with a sentences array of { text, citation }.`;
+If you explain a code, set citation to that code's gloss id. Otherwise set citation to the string null.
+Return JSON with a sentences array of { text, citation }. A citation is only a gloss id from the
+packet, or null.`;
 
 const EXTRACTION_JSON_SCHEMA = {
   type: 'object',
@@ -173,7 +174,7 @@ function repairExtraction(extraction: Extraction, text: string): Extraction {
   return extraction;
 }
 
-function templateDraft(packet: SealedPacket): CloudDraft {
+export function templateDraft(packet: SealedPacket): CloudDraft {
   const sentences: DraftSentence[] = [];
   const total = packet.checks.find((c) => c.id === 'total-mismatch');
   if (total) {
