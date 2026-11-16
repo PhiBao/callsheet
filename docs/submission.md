@@ -10,7 +10,8 @@ video.
 - **Track:** Web/Chrome
 - **Repo:** https://github.com/PhiBao/callsheet
 - **Hosted URL:** https://callsheet-hybrid.web.app
-- **Video:** `docs/video/callsheet-demo.mp4` — upload to YouTube, then paste the public URL here.
+- **Video:** `docs/video/callsheet-demo.mp4` (1:40, 1080p, narrated, burned-in captions, sidecar
+  `.srt`). Upload to YouTube, then paste the public URL here.
 
 ## Description (paste into Devpost)
 
@@ -46,8 +47,8 @@ The hybrid split is the product, not a fallback toggle.
 2. **Check, on device.** A Rust crate compiled to WebAssembly flags a code that appears twice on
    the same date and a printed total that does not match the lines. The model cannot change the
    verdict.
-3. **Seal.** Private fields are dropped at the boundary. The packet contains dates, codes,
-   descriptions, amounts, the checks, and gloss ids only.
+3. **Seal.** Private fields are dropped at the boundary. The packet contains dates, codes, amounts,
+   the checks, and gloss ids only. Free-text descriptions are dropped with the private fields.
 4. **Write, in the cloud.** Gemini Flash-Lite through Firebase AI Logic in `ONLY_IN_CLOUD` mode sees
    only the packet. It returns short sentences with optional gloss citations.
 5. **Fence, on device.** The same Rust crate drops any sentence with a dollar amount not in the

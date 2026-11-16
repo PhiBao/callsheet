@@ -5,8 +5,10 @@
 The first thirty seconds have to say who it is for, what the problem is, and how Firebase AI Logic
 makes the private read possible. Judges may score from the video alone.
 
-The recording is `docs/video/callsheet-demo.mp4` (2:08, 1600×1200). It is a real screen recording
-of the hosted app, with a title card and an end card.
+The recording is `docs/video/callsheet-demo.mp4` (1:40, 1920×1080, narrated, subtitles burned in
+and a sidecar `.srt`). It is a real screen recording of the hosted app, cut into five segments: a
+title card, the real read starting, a hybrid-split explainer while the slow first read runs, the
+review and sheet from the labeled captured read, and a close card.
 
 ### 0:00–0:08 — Title card
 

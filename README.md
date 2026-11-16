@@ -66,7 +66,13 @@ impact, a write-this-down block, and the phone number. It prints, copies, and do
 7. **Prove the fence.** A planted `$999.00` fee, a planted patient name, a planted phone number,
    and a planted amount on the wrong code are all dropped, each with its reason.
 
-A screen recording is in `docs/video/callsheet-demo.mp4`.
+A narrated, subtitled screen recording (1:40) is in
+[`docs/video/callsheet-demo.mp4`](docs/video/callsheet-demo.mp4), with the word-timed captions in
+[`docs/video/callsheet-demo.srt`](docs/video/callsheet-demo.srt). It shows the real on-device read
+starting, the hybrid split, the review, the sealed packet, the call sheet, and the fence dropping
+all four planted attacks.
+
+![The Callsheet sequence: open a bill, read it on device, check and seal it, send only the packet, receive the questions, fence them and fill in the phone, then hand back the call sheet.](docs/diagrams/callsheet-sequence.png)
 
 ## Why hybrid, and why this split
 
@@ -135,46 +141,21 @@ a list of labels in order.
 
 ## Architecture
 
-```
-┌────────────────────────────── Browser ───────────────────────────────┐
-│  pasted text · PDF text (pdf.js, local)                               │
-│        │                                                             │
-│        ▼                                                             │
-│  Firebase AI Logic  ONLY_ON_DEVICE   structured bill JSON             │
-│        │                                  │                          │
-│        │                                  ▼                          │
-│        │                          review step (editable)              │
-│        │                                  │                          │
-│        │                                  ▼                          │
-│        │                          Rust/WASM checks                   │
-│        │                                  │                          │
-│        │                                  ▼                          │
-│        │                          sealed packet (no PII)               │
-│        │                                  │                          │
-│        │                    user reviews the packet                   │
-│        │                                  │                          │
-│        ▼                                  ▼                          │
-│  Firebase AI Logic  ONLY_IN_CLOUD  ◄──  packet only                   │
-│        │                                                             │
-│        ▼                                                             │
-│  Rust/WASM citation fence  ──►  kept sentences + dropped reasons     │
-│        │                                                             │
-│        ▼                                                             │
-│  local fill-in (phone, opener)  ──►  call sheet                      │
-└───────────────────────────────────────────────────────────────────────┘
-        │                    │                         │
-        ▼                    ▼                         ▼
-   App Check           Firestore receipt         Remote Config
-   reCAPTCHA           public, append-only       model, glossary version
-   Enterprise          hash + sources +         kill switch for the
-                       counts, no raw text       writing step
-```
+![The Callsheet trust boundary: the private on-device read and the Rust checks stay in the browser; only a sealed packet of codes, dates, and amounts crosses to the cloud; the draft returns to a local fence, and the call sheet is finished on the device.](docs/diagrams/callsheet-boundary.png)
 
-Diagrams:
+The document, the review, the arithmetic, the seal, and the fence are one page. The only request
+body the cloud ever sees is the sealed packet.
 
-- [`docs/diagrams/where-the-bill-goes.svg`](docs/diagrams/where-the-bill-goes.svg) — the boundary.
-- [`docs/diagrams/read-seal-write-verify.svg`](docs/diagrams/read-seal-write-verify.svg) — the
-  sequence.
+| Supporting service | What it does | What it never holds |
+| --- | --- | --- |
+| App Check | Attests the browser before either inference call, with reCAPTCHA Enterprise, and is **enforced** for Firebase AI Logic. | — |
+| Firestore receipt | A public, append-only proof: a 64-character packet hash, the two inference sources, the check ids, and the fence counts. | The bill, the packet, or any private field. |
+| Remote Config | The cloud model, the glossary version, and a kill switch for the writing step. | Bill content. |
+
+The figures are authored with the diagram-design system. The editable sources are
+[`docs/diagrams/src/boundary.html`](docs/diagrams/src/boundary.html) and
+[`docs/diagrams/src/sequence.html`](docs/diagrams/src/sequence.html); render both with
+`CHROME_PATH=/path/to/chrome node scripts/render-diagram-design.mjs`.
 
 ## Data model
 

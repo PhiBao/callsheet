@@ -72,6 +72,18 @@ export default function App() {
       .catch(() => setModelStatus('unavailable'));
   }, []);
 
+  // A demo entry point for the recording: `?demo=captured` opens the review
+  // with the captured on-device read, which the UI labels as captured. It is
+  // never a live claim, and it keeps a recorded walkthrough in step with the
+  // slow first read.
+  useEffect(() => {
+    if (!rules) return;
+    if (new URLSearchParams(window.location.search).get('demo') === 'captured') {
+      handleCapturedRead();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rules]);
+
   function resetDocument(nextMode: SourceMode, text: string, name: string | null) {
     setSourceMode(nextMode);
     setDocumentText(text);

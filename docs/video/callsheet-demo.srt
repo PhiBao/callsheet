@@ -1,0 +1,122 @@
+1
+00:00:00,100 --> 00:00:03,500
+People paste medical bills into chatbots.
+
+2
+00:00:03,450 --> 00:00:07,459
+The name, the member ID, and the phone number go with them.
+
+3
+00:00:07,459 --> 00:00:11,340
+Callsheet does the reading on your own computer instead.
+
+4
+00:00:11,949 --> 00:00:15,298
+This is a real explanation of benefits.
+
+5
+00:00:15,247 --> 00:00:19,219
+The printed amount due is one hundred forty-six dollars.
+
+6
+00:00:19,219 --> 00:00:22,187
+The lines add up to one hundred ten.
+
+7
+00:00:22,187 --> 00:00:24,987
+Two visits carry the same code.
+
+8
+00:00:24,987 --> 00:00:26,731
+Press read.
+
+9
+00:00:26,731 --> 00:00:30,494
+The model runs here, through Firebase AI Logic.
+
+10
+00:00:30,494 --> 00:00:32,956
+The bill is not uploaded.
+
+11
+00:00:33,570 --> 00:00:37,426
+On-device is private, and it costs nothing to run.
+
+12
+00:00:37,375 --> 00:00:40,475
+It is also slow, and it is small.
+
+13
+00:00:40,475 --> 00:00:45,656
+So the device does what it is good at: it reads the document, and it
+checks it.
+
+14
+00:00:45,656 --> 00:00:49,719
+The cloud does what it is good at: it writes the questions.
+
+15
+00:00:49,719 --> 00:00:52,402
+Between them is a sealed packet.
+
+16
+00:00:52,402 --> 00:00:55,709
+No name, no member ID, no phone.
+
+17
+00:00:55,709 --> 00:00:58,039
+The bill never crosses.
+
+18
+00:00:58,640 --> 00:01:01,284
+This is the read from that run.
+
+19
+00:01:01,234 --> 00:01:04,424
+Five lines, every amount editable.
+
+20
+00:01:04,424 --> 00:01:07,355
+Nothing is sealed until you say so.
+
+21
+00:01:07,355 --> 00:01:09,033
+Seal it.
+
+22
+00:01:09,033 --> 00:01:11,989
+The cloud writes from the packet alone.
+
+23
+00:01:11,989 --> 00:01:15,531
+The sheet puts the phone number back, locally.
+
+24
+00:01:15,531 --> 00:01:22,680
+And the check the model cannot change: a made-up fee, a patient name,
+a phone number, and an amount on the wrong code.
+
+25
+00:01:22,680 --> 00:01:25,948
+All four are dropped, each with its reason.
+
+26
+00:01:26,569 --> 00:01:28,486
+A private read.
+
+27
+00:01:28,435 --> 00:01:30,427
+A sealed packet.
+
+28
+00:01:30,427 --> 00:01:33,200
+A check the model cannot change.
+
+29
+00:01:33,200 --> 00:01:34,920
+Callsheet.
+
+30
+00:01:34,920 --> 00:01:39,528
+The code, the live demo, and the proof are in the repository.
+
