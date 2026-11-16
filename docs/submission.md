@@ -10,8 +10,11 @@ video.
 - **Track:** Web/Chrome
 - **Repo:** https://github.com/PhiBao/callsheet
 - **Hosted URL:** https://callsheet-hybrid.web.app
-- **Video:** `docs/video/callsheet-demo.mp4` (1:40, 1080p, narrated, burned-in captions, sidecar
-  `.srt`). Upload to YouTube, then paste the public URL here.
+- **Devpost project:** https://devpost.com/software/callsheet-bnsymd (submitted 2026-11-16)
+- **Video:** https://youtu.be/jCZbUMxgJZM (1:40, 1080p, narrated, English subtitles burned in).
+  The source file is `docs/video/callsheet-demo.mp4` and the sidecar captions are
+  `docs/video/callsheet-demo.srt`.
+- **Devpost description:** [`docs/devpost-description.md`](devpost-description.md).
 
 ## Description (paste into Devpost)
 
@@ -102,9 +105,9 @@ firestore, remote-config, react, typescript, vite, rust, webassembly, wasm-bindg
 - [x] The cloud write works from the hosted URL with App Check.
 - [x] The fence proof works.
 - [x] The repo is public and the license is visible in the About section.
-- [ ] The video is public on YouTube, under three minutes, English, and shows the on-device read.
-- [ ] The Devpost project is submitted, not left as a draft.
-- [ ] The submission is made before 2026-11-30 14:00 PT.
+- [x] The video is public on YouTube, under three minutes, English, and shows the on-device read.
+- [x] The Devpost project is submitted, not left as a draft.
+- [x] The submission is made before 2026-11-30 14:00 PT.
 
 ## Known timing
 
